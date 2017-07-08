@@ -46,3 +46,10 @@ While activating a media player will toggle play and pause.
 
 Typing an entities full "friendly_name" or if no friendly_name, "entity_id" will bring up contextural results according to that entities service. You may also display the entities attributes.
 
+### Planned Features:
+
+* ~Filters~
+* ~Basic contextual results~
+* Advanced contextual results
+* Get Wox context menu to work
+* Interact with entity based on modifier key being held (possible with Wox?)
