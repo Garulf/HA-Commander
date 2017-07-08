@@ -4,7 +4,7 @@
   "Name":"HA-Commander",
   "Description":"Search, and interact with Home Assistant from Wox.",
   "Author":"Akrasia",
-  "Version":"1.0.1",
+  "Version":"0.8.1",
   "Language":"python",
   "Website":"https://github.com/Akrasia/HA-Commander",
   "IcoPath": "icons\\home-assistant.png",
