@@ -7,6 +7,8 @@ Type in Wox:
 #### You _MUST_ enter the IP/Password of your Home Assistant server!
 Failure to do so will cause the plugin to not work at all.
 
+A cfg file or action word will replace this step soon™
+
 You can do this by opening up main.py in:
 
 ```C:\Users\<User>\AppData\Roaming\Wox\Plugins\HA-Commander\```
