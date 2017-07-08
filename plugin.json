@@ -1,0 +1,12 @@
+{
+  "ID":"B2D2C23B055D411GH66FF0C79D6C2A6H",
+  "ActionKeyword":"ha",
+  "Name":"HA-Commander",
+  "Description":"Search, and interact with Home Assistant from Wox.",
+  "Author":"Akrasia",
+  "Version":"0.9.0",
+  "Language":"python",
+  "Website":"https://github.com/Akrasia/HA-Commander",
+  "IcoPath": "icons\\home-assistant.png",
+  "ExecuteFileName":"main.py"
+}
