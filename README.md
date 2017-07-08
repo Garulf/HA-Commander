@@ -4,6 +4,21 @@ Type in Wox:
 
 ```wpm install ha-commander```
 
+#### You _MUST_ enter the IP/Password of your Home Assistant server!
+Failure to do so will cause the plugin to not work at all.
+
+You can do this by opening up main.py in:
+
+```C:\Users\<User>\AppData\Roaming\Wox\Plugins\HA-Commander\```
+
+Edit these lines:
+
+ha_ip = #Home assistant IP
+
+ha_port = #Home assistant port
+
+ha_password = #Your password if any
+
 # How-To:
 
 ### Basics:
