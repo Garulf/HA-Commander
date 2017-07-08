@@ -1,13 +1,13 @@
 from wox import Wox,WoxAPI
 # -*- coding: utf-8 -*-
 import urllib2,json,os.path
-import time
+#import time
 
 
 
-ha_ip = "10.0.0.206"
+ha_ip = "127.0.0.1"
 ha_port = "8123"
-ha_password = "akrasia1"
+ha_password = "my_password"
 url = 'http://' + ha_ip + ':' + ha_port + '/api/states?api_password=' + ha_password
 icon_color = 'white'
 key_services = ("group", "automation", "device_tracker", "sensor", "switch", "zone", "sun", "light", "switch", "media_player", "binary_sensor", "device_tracker", "persistent_notification")
@@ -29,21 +29,23 @@ def removeNonAscii(s): return "".join(filter(lambda x: ord(x)<128, s))
 
 def get_services(type=None):
     services = []
-    if type.endswith("s"):
-        type = type.rstrip("s")
-    states = post_data(url,"")
-    #returns all states
-    if type == None:
-        services = states
-    #returns states filtered by service
-    elif type in key_services:
-        for i in range(0, len(states)):
-            if states[i]["entity_id"].startswith(type + "."):
-                services.append(states[i])
-    else:
-        #raise ValueError("Invalid service provided")
-        services = states
-
+    try:
+        if type.endswith("s"):
+            type = type.rstrip("s")
+        states = post_data(url,"")
+        #returns all states
+        if type == None:
+            services = states
+        #returns states filtered by service
+        elif type in key_services:
+            for i in range(0, len(states)):
+                if states[i]["entity_id"].startswith(type + "."):
+                    services.append(states[i])
+        else:
+            #raise ValueError("Invalid service provided")
+            services = states
+    except:
+        services = -1
     return services
 
 def get_attributes(service,num):
@@ -117,8 +119,39 @@ class homeassistant(Wox):
         results = []
         argument = ""
         argument = query.split()
+        #---handle connection errors
+        if query.lower().strip() == "settings":
+            results = []
+            ico = './icons/icons_' + icon_color + '/settings.png'
+            results.append({
+                "Title": "Change Icon color",
+                "SubTitle": "Does not work currently",
+                "IcoPath":ico,
+                "JsonRPCAction": {
+                    #change query to show only service type
+                    "method": "Wox.ChangeQuery",
+                    "parameters": ["ha settings", False],
+                    # hide the query wox or not
+                    "dontHideAfterAction": True
+                }
+            })
+        elif query.lower().strip() == "connection error":
+            results = []
+            ico = './icons/icons_' + icon_color + '/info.png'
+            results.append({
+                "Title": "Could not connect to Home assistant at: " + ha_ip + ":" + ha_port,
+                "SubTitle": "Select me to change Home Assistant IP and password!",
+                "IcoPath":ico,
+                "JsonRPCAction": {
+                    #change query to show only service type
+                    "method": "Wox.ChangeQuery",
+                    "parameters": ["ha settings", False],
+                    # hide the query wox or not
+                    "dontHideAfterAction": True
+                }
+            })
         #---returns lights filtered by query
-        if len(argument) >= 1:
+        elif len(argument) >= 1:
             for keywords in key_services:
                 title = keywords
                 subtext = keywords
@@ -137,6 +170,8 @@ class homeassistant(Wox):
                             }
                         })
             service = get_services(argument[0])
+            if service == -1:
+                WoxAPI.change_query("ha connection error",True)
             for x in range(0, len(service)):
                 entity_id = service[x]["entity_id"]
                 try:
