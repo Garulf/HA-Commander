@@ -7,7 +7,7 @@ Type in Wox:
 ```wpm install ha-commander```
 
 #### You _MUST_ enter the IP/Password of your Home Assistant server!
-Failure to do so will cause the plugin to not work at all.
+otherwise the plugin will not work at all.
 
 A cfg file or action word will replace this step soon™
 
