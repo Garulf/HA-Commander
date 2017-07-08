@@ -1,3 +1,5 @@
+![Demo](demo.gif)
+
 # Installation:
 
 Type in Wox:
