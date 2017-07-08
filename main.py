@@ -82,18 +82,25 @@ def get_icon(entity_id,state):
 
 class homeassistant(Wox):
     #Active, toggle, trigger service
-    def activate(self, service, fn, query):
+    def activate(self, service, title, query):
         action = "toggle"
         if get_type(service) == "media_player":
             action = "media_play_pause"
-        post_data('http://' + ha_ip + ':' + ha_port + '/api/services/' + get_type(service) + '/' + action + '?api_password=' + ha_password,{ "entity_id": service })
-        #WoxAPI.start_loadingbar(self)
-        #time.sleep(0.8)
-        #WoxAPI.stop_loadingbar(self)
-        #if query.endswith("trigger"):
-            #WoxAPI.change_query("dimming " + fn,True)
-        #else:
-        #WoxAPI.change_query("ha " + fn,True)
+        if query != title:
+            action = None
+            WoxAPI.change_query("ha " + title + " ",True)
+        try:
+            if action != None:
+                post_data('http://' + ha_ip + ':' + ha_port + '/api/services/' + str(get_type(service)) + '/' + str(action) + '?api_password=' + ha_password,{ "entity_id": str(service) })
+                #WoxAPI.start_loadingbar(self)
+                #time.sleep(0.8)
+                #WoxAPI.stop_loadingbar(self)
+                #if query.endswith("trigger"):
+                    #WoxAPI.change_query("dimming " + fn,True)
+                #else:
+                #WoxAPI.change_query("ha " + fn,True)
+        except:
+            pass
 
     def adjust_brightness(self, entity_id, percentage, delay=4):
         brightness = 255 * int(percentage) / 100
@@ -120,38 +127,7 @@ class homeassistant(Wox):
         argument = ""
         argument = query.split()
         #---handle connection errors
-        if query.lower().strip() == "settings":
-            results = []
-            ico = './icons/icons_' + icon_color + '/settings.png'
-            results.append({
-                "Title": "Change Icon color",
-                "SubTitle": "Does not work currently",
-                "IcoPath":ico,
-                "JsonRPCAction": {
-                    #change query to show only service type
-                    "method": "Wox.ChangeQuery",
-                    "parameters": ["ha settings", False],
-                    # hide the query wox or not
-                    "dontHideAfterAction": True
-                }
-            })
-        elif query.lower().strip() == "connection error":
-            results = []
-            ico = './icons/icons_' + icon_color + '/info.png'
-            results.append({
-                "Title": "Could not connect to Home assistant at: " + ha_ip + ":" + ha_port,
-                "SubTitle": "Select me to change Home Assistant IP and password!",
-                "IcoPath":ico,
-                "JsonRPCAction": {
-                    #change query to show only service type
-                    "method": "Wox.ChangeQuery",
-                    "parameters": ["ha settings", False],
-                    # hide the query wox or not
-                    "dontHideAfterAction": True
-                }
-            })
-        #---returns lights filtered by query
-        elif len(argument) >= 1:
+        if len(argument) >= 1:
             for keywords in key_services:
                 title = keywords
                 subtext = keywords
@@ -216,40 +192,53 @@ class homeassistant(Wox):
                 if query.lower().strip().startswith(title.lower()):
                     results = []
                     #----Add entry for every attribute
-                    if get_type(entity_id) == "light":
-                        ico = get_icon(entity_id, state)
-                        percentage = query.replace(title.lower(),"",1).lower().strip()
-                        results.append({
-                            "Title": Wox.Infrastructure.Hotkey,
-                            "SubTitle": "Adjust brightness level to " + query.replace(title.lower(),"",1).lower().strip() + "%",
-                            "IcoPath":ico,
-                            "JsonRPCAction":{
-                              "method": "adjust_brightness",
-                              "parameters":[entity_id,percentage],
-                              "dontHideAfterAction":True
-                            }
-                        })
-                        results.append({
-                            "Title": "Toggle",
-                            "SubTitle": "Toggle " + title,
-                            "IcoPath":ico,
-                            "JsonRPCAction":{
-                              "method": "activate",
-                              "parameters":[entity_id,title,query],
-                              "dontHideAfterAction":True
-                            }
-                        })
-                    ico = './icons/icons_' + icon_color + '/info.png'
-                    results.append({
-                        "Title": "Info",
-                        "SubTitle": "Show detailed information",
-                        "IcoPath":ico,
-                        "JsonRPCAction": {
-                            "method": "Wox.ChangeQuery",
-                            "parameters": ["ha " + query + " info" , True],
-                            "dontHideAfterAction": True
-                        }
-                    })
+                    if not query.lower().replace(title.lower(),"",1).strip().startswith("info".lower()):
+                        if get_type(entity_id) == "light":
+                            ico = get_icon(entity_id, state)
+                            percentage = query.lower().replace(title.lower(),"",1).strip()
+                            results.append({
+                                "Title": "Adjust Brightness",
+                                "SubTitle": "Adjust brightness level to " + query.replace(title.lower(),"",1).lower().strip() + "%",
+                                "IcoPath":ico,
+                                "JsonRPCAction":{
+                                  "method": "adjust_brightness",
+                                  "parameters":[entity_id,percentage],
+                                  "dontHideAfterAction":True
+                                }
+                            })
+                            results.append({
+                                "Title": "Toggle",
+                                "SubTitle": "Toggle " + title,
+                                "IcoPath":ico,
+                                "JsonRPCAction":{
+                                  "method": "activate",
+                                  "parameters":[entity_id,title,query],
+                                  "dontHideAfterAction":True
+                                }
+                            })
+                        else:
+                            results.append({
+                                "Title": "Action",
+                                "SubTitle": "Activate default action for " + get_type(entity_id),
+                                "IcoPath":ico,
+                                "JsonRPCAction":{
+                                  "method": "activate",
+                                  "parameters":[entity_id,title,query],
+                                  "dontHideAfterAction":True
+                                }
+                            })
+                        if subtext != "N/A":
+                            ico = './icons/icons_' + icon_color + '/info.png'
+                            results.append({
+                                "Title": "Info",
+                                "SubTitle": "Show detailed information",
+                                "IcoPath":ico,
+                                "JsonRPCAction": {
+                                    "method": "Wox.ChangeQuery",
+                                    "parameters": ["ha " + query + " info" , True],
+                                    "dontHideAfterAction": True
+                                }
+                            })
                     if query.lower().replace(title.lower(),"",1).strip().startswith("info".lower()):
                         results = []
                         for g in range(len(service[x]["attributes"].keys())):
