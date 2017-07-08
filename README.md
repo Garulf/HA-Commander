@@ -25,24 +25,24 @@ ha_password = #Your password if any
 
 ### Basics:
 
-Begind by typing the defualt ActionWord: "ha"
+Begind by typing the default ActionWord: "ha"
 
 This will bring up a list allowing you to filter all entities by service.
 
 You can filter by services listed below:
 
 * group
-* automation 
-* device_tracker 
+* automation
+* device_tracker
 * sensor
-* switch 
-* zone 
-* sun 
-* light 
-* switch 
-* media_player 
-* binary_sensor 
-* device_tracker 
+* switch
+* zone
+* sun
+* light
+* switch
+* media_player
+* binary_sensor
+* device_tracker
 * persistent_notification
 
 #### Example:
