@@ -1,6 +1,3 @@
-# HA-Commander
-Search, and interact with Home Assistant from Wox
-
 # Installation:
 
 Type in Wox:
