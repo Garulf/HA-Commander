@@ -1,6 +1,7 @@
 ![Demo](demo.gif)
 
 # Installation:
+http://www.getwox.com/plugin/158
 
 Type in Wox:
 
