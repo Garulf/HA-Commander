@@ -10,7 +10,7 @@ ha_port = "8123"
 ha_password = "my_password"
 url = 'http://' + ha_ip + ':' + ha_port + '/api/states?api_password=' + ha_password
 icon_color = 'white'
-key_services = ("group", "automation", "device_tracker", "sensor", "switch", "zone", "sun", "light", "switch", "media_player", "binary_sensor", "device_tracker", "persistent_notification")
+key_services = ["group", "automation", "device_tracker", "sensor", "switch", "zone", "sun", "light", "switch", "media_player", "binary_sensor", "device_tracker", "persistent_notification"]
 
 def post_data(url, postdata):
     # create the request object and set some headers
@@ -26,8 +26,8 @@ def post_data(url, postdata):
     return json.load(res)
 
 def removeNonAscii(s): return "".join(filter(lambda x: ord(x)<128, s))
-
-def get_services(type=None):
+    
+def get_entity(type=None):
     services = []
     try:
         if type.endswith("s"):
@@ -145,7 +145,7 @@ class homeassistant(Wox):
                                 "dontHideAfterAction": True
                             }
                         })
-            service = get_services(argument[0])
+            service = get_entity(argument[0])
             if service == -1:
                 WoxAPI.change_query("ha connection error",True)
             for x in range(0, len(service)):
