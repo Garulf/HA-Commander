@@ -1,7 +1,13 @@
-from wox import Wox,WoxAPI
 # -*- coding: utf-8 -*-
-import urllib2,json,os.path
-#import time
+import json
+
+import requests
+
+try:
+    from wox import Wox as FlowLauncher
+except ModuleNotFoundError:
+    from flowlauncher import FlowLauncher
+
 
 
 
@@ -80,7 +86,7 @@ def get_icon(entity_id,state):
         ico = './icons/home-assistant.png'
     return ico
 
-class homeassistant(Wox):
+class Commander(FlowLauncher):
     #Active, toggle, trigger service
     def activate(self, service, title, query):
         action = "toggle"
@@ -284,4 +290,4 @@ class homeassistant(Wox):
         return results
 
 if __name__ == "__main__":
-    homeassistant()
+    Commander()
