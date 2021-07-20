@@ -17,6 +17,8 @@ except ModuleNotFoundError:
 
 CONFIG_FILE = './config.ini'
 DEV_CONFIG = './.dev-config.ini'
+ICONS_FOLDER = './icons/icons_white/'
+
 
 class Commander(FlowLauncher):
 
