@@ -54,7 +54,7 @@ class Commander(FlowLauncher):
 
     def settings(self):
         with open(PLUGIN_JSON, 'r') as f:
-            self.id = json.loads(f)['ID']
+            self.id = json.load(f)['ID']
         with open(SETTINGS, 'r') as f:
             self.settings = json.load(f)
         self.keyword = self.settings['PluginSettings']['Plugins'][self.id]['ActionKeywords'][0]
