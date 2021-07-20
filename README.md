@@ -37,3 +37,10 @@ HA-Commander will search by `entity_id` and `firendly_name` if set.
 
 At this time entities can only be toggled.
 
+# Requirements
+
+Python 3.6 or higher
+
+Requests package
+
+Wox, or Flow Launcher
