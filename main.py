@@ -104,7 +104,7 @@ class Commander(FlowLauncher):
         for entity in states:
             friendly_name = entity['attributes'].get('friendly_name', '')
             entity_id = entity['entity_id']
-            if q in entity_id or q in friendly_name:
+            if q in entity_id.lower() or q in friendly_name.lower():
                 self.results.append({
                     "Title": friendly_name or entity_id,
                     "SubTitle": entity['state'],
