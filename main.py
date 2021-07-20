@@ -11,106 +11,11 @@ except ModuleNotFoundError:
 
 
 
-ha_ip = "127.0.0.1"
-ha_port = "8123"
-ha_password = "my_password"
-url = 'http://' + ha_ip + ':' + ha_port + '/api/states?api_password=' + ha_password
-icon_color = 'white'
-key_services = ["group", "automation", "device_tracker", "sensor", "switch", "zone", "sun", "light", "switch", "media_player", "binary_sensor", "device_tracker", "persistent_notification"]
-
-def post_data(url, postdata):
-    # create the request object and set some headers
-    req = urllib2.Request(url)
-    req.add_header('Content-type','application/json')
-    data = json.dumps(postdata)
-    #print data
-    # make the request and print the results
-    if postdata:
-        res = urllib2.urlopen(req,data)
-    else:
-        res = urllib2.urlopen(req)
-    return json.load(res)
-
-def removeNonAscii(s): return "".join(filter(lambda x: ord(x)<128, s))
-    
-def get_entity(type=None):
-    services = []
-    try:
-        if type.endswith("s"):
-            type = type.rstrip("s")
-        states = post_data(url,"")
-        #returns all states
-        if type == None:
-            services = states
-        #returns states filtered by service
-        elif type in key_services:
-            for i in range(0, len(states)):
-                if states[i]["entity_id"].startswith(type + "."):
-                    services.append(states[i])
         else:
-            #raise ValueError("Invalid service provided")
-            services = states
-    except:
-        services = -1
-    return services
-
-def get_attributes(service,num):
-    attributes = []
-    for i in range(len(service[num]["attributes"].keys())):
-        key = list(service[num]["attributes"].keys())[i].replace("_"," ")
-        value = service[num]["attributes"].values()[i]
         try:
-            value = removeNonAscii(value)
-        except:
-            value = value
-        if key != "friendly name" and key != "unit of measurement":
-            attributes.append("{0}: {1}".format(key ,value).replace("\n", ""))
-        joined_attributes = ', '.join(attributes)
-        if joined_attributes == "":
-            joined_attributes = "N/A"
-    return joined_attributes.strip()
-
-def get_type(entity_id):
-    return str(entity_id.split(".")[0])
-
-def get_icon(entity_id,state):
-    try:
-        ico = './icons/icons_' + icon_color + "/" + get_type(entity_id)
-        if state == "on" or state == "off" or state == "paused" or state == "playing":
-            ico += "_" + state + ".png"
-        else:
-            ico += ".png"
-        if not os.path.isfile(ico):
-            ico = './icons/home-assistant.png'
-    except:
-        ico = './icons/home-assistant.png'
-    return ico
-
-class Commander(FlowLauncher):
-    #Active, toggle, trigger service
-    def activate(self, service, title, query):
-        action = "toggle"
-        if get_type(service) == "media_player":
-            action = "media_play_pause"
-        if query != title:
-            action = None
-            WoxAPI.change_query("ha " + title + " ",True)
-        try:
-            if action != None:
-                post_data('http://' + ha_ip + ':' + ha_port + '/api/services/' + str(get_type(service)) + '/' + str(action) + '?api_password=' + ha_password,{ "entity_id": str(service) })
-                #WoxAPI.start_loadingbar(self)
-                #time.sleep(0.8)
-                #WoxAPI.stop_loadingbar(self)
-                #if query.endswith("trigger"):
-                    #WoxAPI.change_query("dimming " + fn,True)
-                #else:
-                #WoxAPI.change_query("ha " + fn,True)
         except:
             pass
 
-    def adjust_brightness(self, entity_id, percentage, delay=4):
-        brightness = 255 * int(percentage) / 100
-        post_data('http://' + ha_ip + ':' + ha_port + '/api/services/light/turn_on?api_password=' + ha_password,{ "entity_id": entity_id, "brightness": brightness, "transition": delay })
 
     def context_menu(self, data):
         results = []
