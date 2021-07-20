@@ -3,7 +3,7 @@
   "ActionKeyword":"ha",
   "Name":"HA-Commander",
   "Description":"Search, and interact with Home Assistant using Wox or Flow LAuncher.",
-  "Author":"Akrasia",
+  "Author":"Garulf",
   "Version":"2.1.0",
   "Language":"python",
   "Website":"https://github.com/Garulf/HA-Commander",
