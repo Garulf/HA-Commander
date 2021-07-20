@@ -6,8 +6,12 @@ import requests
 
 try:
     from wox import Wox as FlowLauncher
+    from wox import WoxAPI as API
+    PRETEXT = 'Wox'
 except ModuleNotFoundError:
     from flowlauncher import FlowLauncher
+    from flowlauncher import FlowLauncherAPI as API
+    PRETEXT = 'Flow.Launcher'
 
 
 CONFIG_FILE = './config.ini'
