@@ -1,52 +1,29 @@
-![Demo](demo.gif)
-
 # Installation:
-http://www.getwox.com/plugin/158
 
-Type in Wox:
+### Manual Installation:
 
-```wpm install ha-commander```
+Unpack in your Flow Launcher or Wox plugin directory.
 
-#### You _MUST_ enter the IP/Password of your Home Assistant server!
-otherwise the plugin will not work at all.
+Wox: `%appdata%\Wox\Plugins`
 
-A cfg file or action word will replace this step soon™
+Flow Launcher: `%appdata%\FlowLauncher\Plugins`
 
-You can do this by opening up main.py in:
+Please edit your `config.ini` to complete setup:
 
-```C:\Users\<User>\AppData\Roaming\Wox\Plugins\HA-Commander\```
-
-Edit these lines:
-
-ha_ip = #Home assistant IP
-
-ha_port = #Home assistant port
-
-ha_password = #Your password if any
+| Setting    | Type    | Default   | Description                                                                 |
+|------------|---------|-----------|-----------------------------------------------------------------------------|
+| host       | string  | 127.0.0.1 | Your Home Assistant IP address or hostname                                  |
+| port       | int     | 8123      | Your Home Assistant port                                                    |
+| token      | string  | None      | https://developers.home-assistant.io/docs/auth_api/#long-lived-access-token |
+| ssl        | boolean | true      | Set to true if your Home Assistant uses SSL/HTTPS                           |
+| verify_ssl | boolean | true      | Rejects unverified SSL certs if set to true                                 |
 
 # How-To:
 
 ### Basics:
 
-Begind by typing the default ActionWord: "ha"
+Begin by typing the default ActionWord: "ha"
 
-This will bring up a list allowing you to filter all entities by service.
-
-You can filter by services listed below:
-
-* group
-* automation
-* device_tracker
-* sensor
-* switch
-* zone
-* sun
-* light
-* switch
-* media_player
-* binary_sensor
-* device_tracker
-* persistent_notification
 
 #### Example:
 
@@ -54,24 +31,16 @@ You can filter by services listed below:
 
 ```ha automation```
 
-Of course just typing will list _ALL_ entities narrowed by your search query.
+HA-Commander will search by `entity_id` and `firendly_name` if set.
 
 ### Interaction:
 
-Selecting an entity will toggle it by default.
+At this time entities can only be toggled.
 
-Activating a light entity will toggle it on and off.
+# Requirements
 
-While activating a media player will toggle play and pause.
+Python 3.6 or higher
 
-### Advanced:
+Requests package
 
-Typing an entities full "friendly_name" or if no friendly_name, "entity_id" will bring up contextural results according to that entities service. You may also display the entities attributes.
-
-### Planned Features:
-
-* ~Filters~
-* ~Basic contextual results~
-* Advanced contextual results
-* Get Wox context menu to work
-* Interact with entity based on modifier key being held (possible with Wox?)
+Wox, or Flow Launcher
