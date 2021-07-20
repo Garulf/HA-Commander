@@ -1,7 +1,12 @@
-- name: Zip Release
-  # You may pin to the exact commit or the version.
-  # uses: TheDoctor0/zip-release@f216aacfedcd3e76b3b027ab065503438cd00d57
-  uses: TheDoctor0/zip-release@0.4.2
-  with:
-    filename: "release.zip"
-    exclusions: '*demo.gif* .gitignore README.md' 
+name: Create Archive
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Archive Release
+      uses: thedoctor0/zip-release@master
+      with:
+        filename: "release.zip"
+        exclusions: "*demo.gif* .gitignore README.md"
