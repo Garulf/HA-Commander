@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os.path
 import json
 from configparser import ConfigParser
 
@@ -15,6 +16,7 @@ except ModuleNotFoundError:
 
 
 CONFIG_FILE = './config.ini'
+DEV_CONFIG = './.dev-config.ini'
 
 class Commander(FlowLauncher):
 
@@ -35,7 +37,10 @@ class Commander(FlowLauncher):
 
     def load_config(self):
         config = ConfigParser()
-        config.read(CONFIG_FILE)
+        config_file = CONFIG_FILE
+        if os.path.exists(DEV_CONFIG):
+            config_file = DEV_CONFIG
+        config.read(config_file)
         _section = config.sections()[0]
         self.host = config[_section]['host']
         self.port = config[_section]['port']
