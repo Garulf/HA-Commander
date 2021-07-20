@@ -61,6 +61,10 @@ class Commander(FlowLauncher):
     def states(self):
         return self.request('GET', 'states')
 
+    def entity_state(self, entity_id):
+        endpoint = f"states/{entity_id}"
+        return self.request('GET', endpoint)
+
     def services(self, domain, service, data):
         endpoint = f"services/{domain}/{service}"
         return self.request('POST', endpoint, data)
