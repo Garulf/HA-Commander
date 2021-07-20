@@ -25,8 +25,12 @@ class Commander(FlowLauncher):
             self.protocol = "http://"
         else:
             self.protocol = "https://"
-        self.url = f"{self.protocol}{self.host}{self.port}/"
-        self.get_states()
+        self.url = f"{self.protocol}{self.host}:{self.port}/"
+        self.headers = {
+            "Authorization": f"Bearer {self.token}",
+            "content-type": "application/json",
+        }
+        self.session = requests.Session()
         super().__init__()
 
     def load_config(self):
@@ -38,21 +42,45 @@ class Commander(FlowLauncher):
         self.token = config[_section]['token']
         self.ssl = config[_section]['ssl']
         self.verify_ssl = config[_section]['verify_ssl']
-        try:
-        except:
-            pass
 
+    def request(self, method, endpoint, data=None):
+        url = f"{self.url}api/{endpoint}"
+        if data:
+            data = json.dumps(data)
+        response = self.session.request(method, url, headers=self.headers, data=data, verify=self.verify_ssl)
+        response.raise_for_status()
+        return response.json()
+
+    def states(self):
+        return self.request('GET', 'states')
+
+    def services(self, domain, service, data):
+        endpoint = f"services/{domain}/{service}"
+        return self.request('POST', endpoint, data)
+
+    def toggle(self, entity_id):
+        data = {
+            "entity_id": entity_id
+        }
+        # Locks CANNOT be toggle with homeassistant domain
+        if entity_id.startswith("lock"):
+            if state == "locked":
+                self.services("lock", "unlock", {"entity_id": entity_id})
+            else:
+                self.services("lock", "lock", {"entity_id": entity_id})
+        else:
+            self.services('homeassistant', 'toggle', data=data)
 
     def context_menu(self, data):
         results = []
         results.append({
-            "Title": "test",
+            "Title": data,
             "SubTitle": "test",
             #"IcoPath":ico,
             "JsonRPCAction": {
                 #change query to show only service type
                 "method": "Wox.ChangeQuery",
-                "parameters": ["ha" + " " + keywords, False],
+                "parameters": ["ha", False],
                 # hide the query wox or not
                 "dontHideAfterAction": True
             }
@@ -60,11 +88,32 @@ class Commander(FlowLauncher):
         return results
 
     def query(self, query):
+        q = query.lower()
+        states = self.states()
+        for entity in states:
+            friendly_name = entity['attributes'].get('friendly_name', '')
+            entity_id = entity['entity_id']
+            if q in entity_id or q in friendly_name:
+                self.results.append({
+                    "Title": friendly_name or entity_id,
+                    "SubTitle": entity['state'],
                     "JsonRPCAction": {
+                        "method": "action",
+                        "parameters": [entity_id, entity['state']],
+                        "dontHideAfterAction": False
+
                     }
                 })
+            if len(self.results) > 30:
+                break
+            
 
 
+        return self.results
+
+    def action(self, entity_id, state):
+        API.start_loadingbar()
+        self.toggle(entity_id)
 
 if __name__ == "__main__":
     Commander()
