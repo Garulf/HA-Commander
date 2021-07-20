@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+from configparser import ConfigParser
 
 import requests
 
@@ -9,9 +10,30 @@ except ModuleNotFoundError:
     from flowlauncher import FlowLauncher
 
 
+CONFIG_FILE = './config.ini'
 
+class Commander(FlowLauncher):
 
+    def __init__(self):
+        self.results = []
+        self.load_config()
+        if self.ssl:
+            self.protocol = "http://"
         else:
+            self.protocol = "https://"
+        self.url = f"{self.protocol}{self.host}{self.port}/"
+        self.get_states()
+        super().__init__()
+
+    def load_config(self):
+        config = ConfigParser()
+        config.read(CONFIG_FILE)
+        _section = config.sections()[0]
+        self.host = config[_section]['host']
+        self.port = config[_section]['port']
+        self.token = config[_section]['token']
+        self.ssl = config[_section]['ssl']
+        self.verify_ssl = config[_section]['verify_ssl']
         try:
         except:
             pass
