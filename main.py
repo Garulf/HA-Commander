@@ -76,6 +76,12 @@ class Commander(FlowLauncher):
         else:
             self.services('homeassistant', 'toggle', data=data)
 
+    def play_pause(self, entity_id):
+        data = {
+            "entity_id": entity_id
+        }
+        self.services('media_player', 'media_play_pause', data=data)        
+
     def context_menu(self, data):
         results = []
         results.append({
@@ -118,7 +124,10 @@ class Commander(FlowLauncher):
 
     def action(self, entity_id, state):
         API.start_loadingbar()
-        self.toggle(entity_id)
+        if entity_id.startswith("media_player."):
+            self.play_pause(entity_id)
+        else:
+            self.toggle(entity_id)
 
 if __name__ == "__main__":
     Commander()
