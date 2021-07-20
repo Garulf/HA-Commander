@@ -14,11 +14,12 @@ except ModuleNotFoundError:
     from flowlauncher import FlowLauncherAPI as API
     PRETEXT = 'Flow.Launcher'
 
-
+PLUGIN_JSON = './plugin.json'
+SETTINGS = '../../Settings/Settings.json'
 CONFIG_FILE = './config.ini'
 DEV_CONFIG = './.dev-config.ini'
 ICONS_FOLDER = './icons/icons_white/'
-
+MAX_ITEMS = 30
 
 class Commander(FlowLauncher):
 
@@ -35,6 +36,7 @@ class Commander(FlowLauncher):
             "content-type": "application/json",
         }
         self.session = requests.Session()
+        self.settings()
         super().__init__()
 
     def load_config(self):
@@ -49,6 +51,13 @@ class Commander(FlowLauncher):
         self.token = config[_section]['token']
         self.ssl = config[_section]['ssl']
         self.verify_ssl = config[_section]['verify_ssl']
+
+    def settings(self):
+        with open(PLUGIN_JSON, 'r') as f:
+            self.id = json.load(f)['ID']
+        with open(SETTINGS, 'r') as f:
+            self.settings = json.load(f)
+        self.keyword = self.settings['PluginSettings']['Plugins'][self.id]['ActionKeywords'][0]
 
     def request(self, method, endpoint, data=None):
         url = f"{self.url}api/{endpoint}"
@@ -128,7 +137,7 @@ class Commander(FlowLauncher):
                         "dontHideAfterAction": False
                     }
                 })
-            if len(self.results) > 30:
+            if len(self.results) > MAX_ITEMS:
                 break
             
 
