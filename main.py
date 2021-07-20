@@ -75,7 +75,8 @@ class Commander(FlowLauncher):
         }
         # Locks CANNOT be toggle with homeassistant domain
         if entity_id.startswith("lock"):
-            if state == "locked":
+            lock_state = self.entity_state(entity_id)['state']
+            if lock_state == "locked":
                 self.services("lock", "unlock", {"entity_id": entity_id})
             else:
                 self.services("lock", "lock", {"entity_id": entity_id})
@@ -110,25 +111,36 @@ class Commander(FlowLauncher):
         for entity in states:
             friendly_name = entity['attributes'].get('friendly_name', '')
             entity_id = entity['entity_id']
+            domain = entity_id.split('.')[0]
+            state = entity['state']
+            icon_string = f"{domain}_{state}"
+            icon = f"{ICONS_FOLDER}{domain}.png"
+            if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
+                icon = f"{ICONS_FOLDER}{icon_string}.png"
             if q in entity_id.lower() or q in friendly_name.lower():
                 self.results.append({
-                    "Title": friendly_name or entity_id,
-                    "SubTitle": entity['state'],
+                    "Title": f"{friendly_name or entity_id}",
+                    "SubTitle": f"[{domain}] {state}",
+                    "IcoPath": icon,
                     "JsonRPCAction": {
                         "method": "action",
-                        "parameters": [entity_id, entity['state']],
+                        "parameters": [entity_id],
                         "dontHideAfterAction": False
-
                     }
                 })
             if len(self.results) > 30:
                 break
             
 
-
+        if len(self.results) == 0:
+            self.results.append({
+                    "Title": "No Results Found!",
+                    "SubTitle": "",
+                    "IcoPath": f"{ICONS_FOLDER}light_off.png",
+                })
         return self.results
 
-    def action(self, entity_id, state):
+    def action(self, entity_id):
         API.start_loadingbar()
         if entity_id.startswith("media_player."):
             self.play_pause(entity_id)
