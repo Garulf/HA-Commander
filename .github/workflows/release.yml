@@ -1,17 +1,42 @@
-name: Create Archive
-on: [push]
+name: Publish Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths-ignore: 
+      - .github/workflows/*
+
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
     steps:
-    - uses: actions/checkout@master
-    - name: Archive Release
-      uses: thedoctor0/zip-release@master
-      with:
-        filename: "release.zip"
-        exclusions: "*demo.gif* .gitignore README.md"
-    - name: Upload Release
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: "release.zip"
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: get version
+        id: version
+        uses: notiz-dev/github-action-json-property@release
+        with: 
+          path: 'plugin.json'
+          prop_path: 'Version'
+      - run: echo ${{steps.version.outputs.prop}} 
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y gettext
+          python -m pip install --upgrade pip
+          pip install -r ./requirements.txt -t ./lib
+          zip -r HA-Commander.zip . -x '*.git*'
+      - name: Publish
+        if: success() && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: 'HA-Commander.zip'
+          tag_name: "v${{steps.version.outputs.prop}}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
