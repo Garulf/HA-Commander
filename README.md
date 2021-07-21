@@ -17,6 +17,7 @@ Please edit your `config.ini` to complete setup:
 | token      | string  | None      | https://developers.home-assistant.io/docs/auth_api/#long-lived-access-token |
 | ssl        | boolean | true      | Set to true if your Home Assistant uses SSL/HTTPS                           |
 | verify_ssl | boolean | true      | Rejects unverified SSL certs if set to true                                 |
+| max_items  | int     | 30        | The max results the launcher will display (Lower is faster)                 |
 
 # How-To:
 
