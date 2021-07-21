@@ -2,11 +2,13 @@
 
 ### Manual Installation:
 
-Unpack in your Flow Launcher or Wox plugin directory.
+Unzip [HA-Commander.zip](https://github.com/Garulf/HA-Commander/releases/latest) to your launchers plugin directory.
 
-Wox: `%appdata%\Wox\Plugins`
+| Launcher      | Plugin Path                      |
+|---------------|----------------------------------|
+| Wox           | `%appdata%\Wox\Plugins`          |
+| Flow Launcher | `%appdata%\FlowLauncher\Plugins` |
 
-Flow Launcher: `%appdata%\FlowLauncher\Plugins`
 
 Please edit your `config.ini` to complete setup:
 
