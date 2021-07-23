@@ -136,23 +136,15 @@ class Commander(FlowLauncher):
 
 
     def context_menu(self, data):
-        results = []
         entity_attributes = data[0].pop('attributes', {})
         entity = {**data[0], **entity_attributes}
         for item in entity:
-            results.append({
-                "Title": str(entity[item]),
-                "SubTitle": item,
-                "IcoPath":f"{ICONS_FOLDER}info.png",
-                "JsonRPCAction": {
-                    #change query to show only service type
-                    "method": "Wox.ChangeQuery",
-                    "parameters": ["ha", False],
-                    # hide the query wox or not
-                    "dontHideAfterAction": True
-                }
-            })
-        return results
+            self.add_item(
+                title=str(entity[item]),
+                subtitle=item,
+                icon=f"{ICONS_FOLDER}info.png",
+            )
+        return self.results
 
     def query(self, query):
         q = query.lower().replace(' ', '_')
