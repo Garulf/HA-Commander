@@ -54,10 +54,13 @@ class Commander(FlowLauncher):
 
     def settings(self):
         with open(PLUGIN_JSON, 'r') as f:
-            self.id = json.load(f)['ID']
+            _json = json.load(f)
+            self.id = _json['ID']
+            self.icon = _json['IcoPath']
         with open(SETTINGS, 'r') as f:
             self.settings = json.load(f)
         self.keyword = self.settings['PluginSettings']['Plugins'][self.id]['ActionKeywords'][0]
+        
 
     def request(self, method, endpoint, data=None):
         url = f"{self.url}api/{endpoint}"
@@ -98,20 +101,39 @@ class Commander(FlowLauncher):
         }
         self.services('media_player', 'media_play_pause', data=data)        
 
+    def add_item(self, title, subtitle='', icon=None, method=None, parameters=None, context=None, hide=False):
+        if icon is None or not os.path.exists(icon):
+            icon = self.icon
+        item = {
+            "Title": title,
+            "SubTitle": subtitle,
+            "IcoPath": icon,
+            "ContextData": context,
+            "JsonRPCAction": {}
+        }
+        item['JsonRPCAction']['method'] = method
+        item['JsonRPCAction']['parameters'] = parameters
+        item['JsonRPCAction']['dontHideAfterAction'] = hide        
+        self.results.append(item)
+
+
     def context_menu(self, data):
         results = []
-        results.append({
-            "Title": data,
-            "SubTitle": "test",
-            #"IcoPath":ico,
-            "JsonRPCAction": {
-                #change query to show only service type
-                "method": "Wox.ChangeQuery",
-                "parameters": ["ha", False],
-                # hide the query wox or not
-                "dontHideAfterAction": True
-            }
-        })
+        entity_attributes = data[0].pop('attributes', {})
+        entity = {**data[0], **entity_attributes}
+        for item in entity:
+            results.append({
+                "Title": str(entity[item]),
+                "SubTitle": item,
+                "IcoPath":f"{ICONS_FOLDER}info.png",
+                "JsonRPCAction": {
+                    #change query to show only service type
+                    "method": "Wox.ChangeQuery",
+                    "parameters": ["ha", False],
+                    # hide the query wox or not
+                    "dontHideAfterAction": True
+                }
+            })
         return results
 
     def query(self, query):
@@ -127,16 +149,14 @@ class Commander(FlowLauncher):
                 icon = f"{ICONS_FOLDER}{domain}.png"
                 if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
                     icon = f"{ICONS_FOLDER}{icon_string}.png"
-                self.results.append({
-                    "Title": f"{friendly_name or entity_id}",
-                    "SubTitle": f"[{domain}] {state}",
-                    "IcoPath": icon,
-                    "JsonRPCAction": {
-                        "method": "action",
-                        "parameters": [entity_id],
-                        "dontHideAfterAction": False
-                    }
-                })
+                self.add_item(
+                    title=f"{friendly_name or entity_id}",
+                    subtitle=f"[{domain}] {state}",
+                    icon=icon,
+                    context=[entity],
+                    method="action",
+                    parameters=[entity_id]
+                )
             if len(self.results) > MAX_ITEMS:
                 break
             
