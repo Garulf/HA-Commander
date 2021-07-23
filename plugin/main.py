@@ -82,6 +82,16 @@ class Commander(FlowLauncher):
         endpoint = f"services/{domain}/{service}"
         return self.request('POST', endpoint, data)
 
+    @staticmethod
+    def domain(entity_id, domain=None):
+        _entity_domain = entity_id.split('.')[0]
+        if not domain:
+            return _entity_domain
+        if _entity_domain == domain:
+            return True
+        else:
+            return False
+
     def toggle(self, entity_id):
         data = {
             "entity_id": entity_id
