@@ -120,13 +120,13 @@ class Commander(FlowLauncher):
         for entity in states:
             friendly_name = entity['attributes'].get('friendly_name', '')
             entity_id = entity['entity_id']
-            domain = entity_id.split('.')[0]
-            state = entity['state']
-            icon_string = f"{domain}_{state}"
-            icon = f"{ICONS_FOLDER}{domain}.png"
-            if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
-                icon = f"{ICONS_FOLDER}{icon_string}.png"
-            if q in entity_id.lower() or q in friendly_name.lower():
+            if q in entity_id.lower() or q in friendly_name.lower().replace(' ', '_'):
+                domain = entity_id.split('.')[0]
+                state = entity['state']
+                icon_string = f"{domain}_{state}"
+                icon = f"{ICONS_FOLDER}{domain}.png"
+                if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
+                    icon = f"{ICONS_FOLDER}{icon_string}.png"
                 self.results.append({
                     "Title": f"{friendly_name or entity_id}",
                     "SubTitle": f"[{domain}] {state}",
