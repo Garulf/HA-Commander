@@ -1,1 +1,2 @@
 requests==2.25.1
+flowlauncher==0.1.1
