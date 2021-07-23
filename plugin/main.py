@@ -67,7 +67,7 @@ class Commander(FlowLauncher):
         url = f"{self.url}api/{endpoint}"
         if data:
             data = json.dumps(data)
-        response = self.session.request(method, url, headers=self.headers, data=data, verify=self.verify_ssl)
+        response = self.session.request(method, url, headers=self.headers, data=data, verify=self.verify_ssl, timeout=60)
         response.raise_for_status()
         return response.json()
 
