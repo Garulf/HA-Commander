@@ -180,11 +180,9 @@ class Commander(FlowLauncher):
             
 
         if len(self.results) == 0:
-            self.results.append({
-                    "Title": "No Results Found!",
-                    "SubTitle": '',
-                    "IcoPath": f"{ICONS_FOLDER}light_off.png",
-                })
+            self.add_item(
+                title="No Results Found!"
+            )
         return self.results
 
     def action(self, entity_id, q):
