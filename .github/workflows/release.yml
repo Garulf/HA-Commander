@@ -7,6 +7,7 @@ on:
     paths-ignore: 
       - .github/workflows/*
       - README.md
+      - assets/*
 
 jobs:
   publish:
