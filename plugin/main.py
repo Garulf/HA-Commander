@@ -182,7 +182,7 @@ class Commander(FlowLauncher):
 
     def action(self, entity_id):
         API.start_loadingbar()
-        if entity_id.startswith("media_player."):
+        if self.domain(entity_id, 'media_player'):
             self.play_pause(entity_id)
         else:
             self.toggle(entity_id)
