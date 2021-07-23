@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import string
 import os.path
 import json
 from configparser import ConfigParser
@@ -106,6 +107,12 @@ class Commander(FlowLauncher):
         else:
             self.call_services('homeassistant', 'toggle', data=data)
 
+    def turn_on(self, entity_id, **service_data):
+        service_data['entity_id'] = entity_id
+        if self.domain(entity_id) == 'light':
+            service_domain = 'light'
+        self.call_services('light', 'turn_on', service_data)
+
     def play_pause(self, entity_id):
         data = {
             "entity_id": entity_id
@@ -153,8 +160,8 @@ class Commander(FlowLauncher):
         for entity in states:
             friendly_name = entity['attributes'].get('friendly_name', '')
             entity_id = entity['entity_id']
-            if q in entity_id.lower() or q in friendly_name.lower().replace(' ', '_'):
-                domain = entity_id.split('.')[0]
+            if q.rstrip('_' + string.digits) in entity_id.lower() or q.rstrip('_' + string.digits) in friendly_name.lower().replace(' ', '_'):
+                domain = self.domain(entity_id)
                 state = entity['state']
                 icon_string = f"{domain}_{state}"
                 icon = f"{ICONS_FOLDER}{domain}.png"
@@ -166,7 +173,7 @@ class Commander(FlowLauncher):
                     icon=icon,
                     context=[entity],
                     method="action",
-                    parameters=[entity_id]
+                    parameters=[entity_id, q]
                 )
             if len(self.results) > MAX_ITEMS:
                 break
@@ -175,14 +182,16 @@ class Commander(FlowLauncher):
         if len(self.results) == 0:
             self.results.append({
                     "Title": "No Results Found!",
-                    "SubTitle": "",
+                    "SubTitle": '',
                     "IcoPath": f"{ICONS_FOLDER}light_off.png",
                 })
         return self.results
 
-    def action(self, entity_id):
+    def action(self, entity_id, q):
         API.start_loadingbar()
-        if self.domain(entity_id, 'media_player'):
+        if self.domain(entity_id, 'light') and q.split('_')[-1].isdigit():
+            self.turn_on(entity_id, brightness_pct=int(q.split('_')[-1]))
+        elif self.domain(entity_id, 'media_player'):
             self.play_pause(entity_id)
         else:
             self.toggle(entity_id)
