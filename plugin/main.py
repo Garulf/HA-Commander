@@ -78,7 +78,7 @@ class Commander(FlowLauncher):
         endpoint = f"states/{entity_id}"
         return self.request('GET', endpoint)
 
-    def services(self, domain, service, data):
+    def call_services(self, domain, service, data):
         endpoint = f"services/{domain}/{service}"
         return self.request('POST', endpoint, data)
 
@@ -100,17 +100,17 @@ class Commander(FlowLauncher):
         if entity_id.startswith("lock"):
             lock_state = self.entity_state(entity_id)['state']
             if lock_state == "locked":
-                self.services("lock", "unlock", {"entity_id": entity_id})
+                self.call_services("lock", "unlock", {"entity_id": entity_id})
             else:
-                self.services("lock", "lock", {"entity_id": entity_id})
+                self.call_services("lock", "lock", {"entity_id": entity_id})
         else:
-            self.services('homeassistant', 'toggle', data=data)
+            self.call_services('homeassistant', 'toggle', data=data)
 
     def play_pause(self, entity_id):
         data = {
             "entity_id": entity_id
         }
-        self.services('media_player', 'media_play_pause', data=data)        
+        self.call_services('media_player', 'media_play_pause', data=data)        
 
     def add_item(self, title, subtitle='', icon=None, method=None, parameters=None, context=None, hide=False):
         if icon is None or not os.path.exists(icon):
