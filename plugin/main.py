@@ -115,7 +115,7 @@ class Commander(FlowLauncher):
         return results
 
     def query(self, query):
-        q = query.lower()
+        q = query.lower().replace(' ', '_')
         states = self.states()
         for entity in states:
             friendly_name = entity['attributes'].get('friendly_name', '')
