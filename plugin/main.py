@@ -51,6 +51,7 @@ class Commander(FlowLauncher):
         self.token = config[_section]['token']
         self.ssl = config[_section]['ssl']
         self.verify_ssl = config[_section]['verify_ssl']
+        self.max_items = config[_section].get('max_items', MAX_ITEMS)
 
     def settings(self):
         with open(PLUGIN_JSON, 'r') as f:

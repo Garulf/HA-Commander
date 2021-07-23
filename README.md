@@ -2,11 +2,13 @@
 
 ### Manual Installation:
 
-Unpack in your Flow Launcher or Wox plugin directory.
+Unzip [HA-Commander.zip](https://github.com/Garulf/HA-Commander/releases/latest) to your launchers plugin directory.
 
-Wox: `%appdata%\Wox\Plugins`
+| Launcher      | Plugin Path                      |
+|---------------|----------------------------------|
+| Wox           | `%appdata%\Wox\Plugins`          |
+| Flow Launcher | `%appdata%\FlowLauncher\Plugins` |
 
-Flow Launcher: `%appdata%\FlowLauncher\Plugins`
 
 Please edit your `config.ini` to complete setup:
 
@@ -17,6 +19,7 @@ Please edit your `config.ini` to complete setup:
 | token      | string  | None      | https://developers.home-assistant.io/docs/auth_api/#long-lived-access-token |
 | ssl        | boolean | true      | Set to true if your Home Assistant uses SSL/HTTPS                           |
 | verify_ssl | boolean | true      | Rejects unverified SSL certs if set to true                                 |
+| max_items  | int     | 30        | The max results the launcher will display (Lower is faster)                 |
 
 # How-To:
 
@@ -40,7 +43,5 @@ At this time entities can only be toggled.
 # Requirements
 
 Python 3.6 or higher
-
-Requests package
 
 Wox, or Flow Launcher
