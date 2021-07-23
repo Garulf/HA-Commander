@@ -147,36 +147,43 @@ class Commander(FlowLauncher):
         return self.results
 
     def query(self, query):
-        q = query.lower().replace(' ', '_')
-        states = self.states()
-        for entity in states:
-            friendly_name = entity['attributes'].get('friendly_name', '')
-            entity_id = entity['entity_id']
-            if q.rstrip('_' + string.digits) in entity_id.lower() or q.rstrip('_' + string.digits) in friendly_name.lower().replace(' ', '_'):
-                domain = self.domain(entity_id)
-                state = entity['state']
-                icon_string = f"{domain}_{state}"
-                icon = f"{ICONS_FOLDER}{domain}.png"
-                if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
-                    icon = f"{ICONS_FOLDER}{icon_string}.png"
-                subtitle = f"[{domain}] {state}"
-                if q.split('_')[-1].isdigit() and self.domain(entity_id, 'light'):
-                    subtitle = f"{subtitle} - Select to change brightness to: {q.split('_')[-1]}%"
-                self.add_item(
-                    title=f"{friendly_name or entity_id}",
-                    subtitle=subtitle,
-                    icon=icon,
-                    context=[entity],
-                    method="action",
-                    parameters=[entity_id, q]
-                )
-            if len(self.results) > MAX_ITEMS:
-                break
-            
+        try:
+            q = query.lower().replace(' ', '_')
+            states = self.states()
+            for entity in states:
+                friendly_name = entity['attributes'].get('friendly_name', '')
+                entity_id = entity['entity_id']
+                if q.rstrip('_' + string.digits) in entity_id.lower() or q.rstrip('_' + string.digits) in friendly_name.lower().replace(' ', '_'):
+                    domain = self.domain(entity_id)
+                    state = entity['state']
+                    icon_string = f"{domain}_{state}"
+                    icon = f"{ICONS_FOLDER}{domain}.png"
+                    if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
+                        icon = f"{ICONS_FOLDER}{icon_string}.png"
+                    subtitle = f"[{domain}] {state}"
+                    if q.split('_')[-1].isdigit() and self.domain(entity_id, 'light'):
+                        subtitle = f"{subtitle} - Select to change brightness to: {q.split('_')[-1]}%"
+                    self.add_item(
+                        title=f"{friendly_name or entity_id}",
+                        subtitle=subtitle,
+                        icon=icon,
+                        context=[entity],
+                        method="action",
+                        parameters=[entity_id, q]
+                    )
+                if len(self.results) > MAX_ITEMS:
+                    break
+                
 
-        if len(self.results) == 0:
+            if len(self.results) == 0:
+                self.add_item(
+                    title="No Results Found!"
+                )
+        except Exception as e:
             self.add_item(
-                title="No Results Found!"
+                title=e.__class__.__name__,
+                subtitle=str(e),
+                icon=f"{ICONS_FOLDER}info.png"
             )
         return self.results
 
