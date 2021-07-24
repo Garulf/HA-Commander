@@ -20,7 +20,11 @@ SETTINGS = '../../Settings/Settings.json'
 CONFIG_FILE = './plugin/config.ini'
 DEV_CONFIG = './plugin/.dev-config.ini'
 ICONS_FOLDER = './icons/icons_white/'
+COLORS_FILE = './plugin/colors.json'
 MAX_ITEMS = 30
+
+with open(COLORS_FILE, 'r') as _f:
+    COLORS = json.load(_f)
 
 class Commander(FlowLauncher):
 
