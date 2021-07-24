@@ -125,7 +125,11 @@ class Commander(FlowLauncher):
 
     def add_item(self, title, subtitle='', icon=None, method=None, parameters=None, context=None, hide=False):
         if icon is None or not os.path.exists(icon):
-            icon = self.icon
+            if os.path.exists(f"{ICONS_FOLDER}{icon}.png"):
+                icon = f"{ICONS_FOLDER}{icon}.png"
+            else:
+                icon = self.icon
+        
         item = {
             "Title": title,
             "SubTitle": subtitle,
