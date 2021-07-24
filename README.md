@@ -13,6 +13,7 @@ Unzip [HA-Commander.zip](https://github.com/Garulf/HA-Commander/releases/latest)
 | Wox           | `%appdata%\Wox\Plugins`          |
 | Flow Launcher | `%appdata%\FlowLauncher\Plugins` |
 
+# Configuration
 
 Please edit your `config.ini` to complete setup:
 
