@@ -111,10 +111,10 @@ class Commander(FlowLauncher):
         else:
             self.call_services('homeassistant', 'toggle', data=data)
 
-    def turn_on(self, entity_id, **service_data):
+    def turn_on(self, entity_id, color_name=None, **service_data):
         service_data['entity_id'] = entity_id
-        if self.domain(entity_id) == 'light':
-            service_domain = 'light'
+        if color_name:
+            service_data['color_name'] = color_name
         self.call_services('light', 'turn_on', service_data)
 
     def play_pause(self, entity_id):
@@ -152,6 +152,15 @@ class Commander(FlowLauncher):
                 subtitle=item,
                 icon=f"{ICONS_FOLDER}info.png",
             )
+        if self.domain(entity['entity_id'], 'light'):
+            for color in COLORS:
+                self.add_item(
+                    title=color.title(),
+                    subtitle='Press ENTER to change to this color',
+                    icon="palette",
+                    method="turn_on",
+                    parameters=[entity['entity_id'], color]
+                )
         return self.results
 
     def query(self, query):
