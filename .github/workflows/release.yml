@@ -40,7 +40,7 @@ jobs:
           sudo apt-get install -y gettext
           python -m pip install --upgrade pip
           pip install -r ./requirements.txt -t ./lib
-          zip -r HA-Commander.zip . -x '*.git*' -x 'demo.gif' -x 'README.md'
+          zip -r HA-Commander.zip . -x '*.git*' -x 'demo.gif' -x 'README.md' -x 'assets/*'
       - name: Publish
         if: success() && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v1
