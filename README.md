@@ -1,5 +1,9 @@
 # Installation:
 
+### Flow Lancher:
+
+Simply type `pm install ha-commander` to have the plugin installed
+
 ### Manual Installation:
 
 Unzip [HA-Commander.zip](https://github.com/Garulf/HA-Commander/releases/latest) to your launchers plugin directory.
