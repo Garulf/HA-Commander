@@ -153,11 +153,12 @@ class Commander(FlowLauncher):
     def query(self, query):
         try:
             q = query.lower().replace(' ', '_')
+            fq = q.rstrip('_' + string.digits)
             states = self.states()
             for entity in states:
                 friendly_name = entity['attributes'].get('friendly_name', '')
                 entity_id = entity['entity_id']
-                if q.rstrip('_' + string.digits) in entity_id.lower() or q.rstrip('_' + string.digits) in friendly_name.lower().replace(' ', '_'):
+                if fq in entity_id.lower() or fq in friendly_name.lower().replace(' ', '_'):
                     domain = self.domain(entity_id)
                     state = entity['state']
                     icon_string = f"{domain}_{state}"
