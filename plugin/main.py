@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import string
 import os.path
 import json
 from configparser import ConfigParser
@@ -67,7 +68,7 @@ class Commander(FlowLauncher):
         url = f"{self.url}api/{endpoint}"
         if data:
             data = json.dumps(data)
-        response = self.session.request(method, url, headers=self.headers, data=data, verify=self.verify_ssl)
+        response = self.session.request(method, url, headers=self.headers, data=data, verify=self.verify_ssl, timeout=60)
         response.raise_for_status()
         return response.json()
 
@@ -78,9 +79,19 @@ class Commander(FlowLauncher):
         endpoint = f"states/{entity_id}"
         return self.request('GET', endpoint)
 
-    def services(self, domain, service, data):
+    def call_services(self, domain, service, data):
         endpoint = f"services/{domain}/{service}"
         return self.request('POST', endpoint, data)
+
+    @staticmethod
+    def domain(entity_id, domain=None):
+        _entity_domain = entity_id.split('.')[0]
+        if not domain:
+            return _entity_domain
+        if _entity_domain == domain:
+            return True
+        else:
+            return False
 
     def toggle(self, entity_id):
         data = {
@@ -90,17 +101,23 @@ class Commander(FlowLauncher):
         if entity_id.startswith("lock"):
             lock_state = self.entity_state(entity_id)['state']
             if lock_state == "locked":
-                self.services("lock", "unlock", {"entity_id": entity_id})
+                self.call_services("lock", "unlock", {"entity_id": entity_id})
             else:
-                self.services("lock", "lock", {"entity_id": entity_id})
+                self.call_services("lock", "lock", {"entity_id": entity_id})
         else:
-            self.services('homeassistant', 'toggle', data=data)
+            self.call_services('homeassistant', 'toggle', data=data)
+
+    def turn_on(self, entity_id, **service_data):
+        service_data['entity_id'] = entity_id
+        if self.domain(entity_id) == 'light':
+            service_domain = 'light'
+        self.call_services('light', 'turn_on', service_data)
 
     def play_pause(self, entity_id):
         data = {
             "entity_id": entity_id
         }
-        self.services('media_player', 'media_play_pause', data=data)        
+        self.call_services('media_player', 'media_play_pause', data=data)        
 
     def add_item(self, title, subtitle='', icon=None, method=None, parameters=None, context=None, hide=False):
         if icon is None or not os.path.exists(icon):
@@ -119,60 +136,62 @@ class Commander(FlowLauncher):
 
 
     def context_menu(self, data):
-        results = []
         entity_attributes = data[0].pop('attributes', {})
         entity = {**data[0], **entity_attributes}
         for item in entity:
-            results.append({
-                "Title": str(entity[item]),
-                "SubTitle": item,
-                "IcoPath":f"{ICONS_FOLDER}info.png",
-                "JsonRPCAction": {
-                    #change query to show only service type
-                    "method": "Wox.ChangeQuery",
-                    "parameters": ["ha", False],
-                    # hide the query wox or not
-                    "dontHideAfterAction": True
-                }
-            })
-        return results
-
-    def query(self, query):
-        q = query.lower().replace(' ', '_')
-        states = self.states()
-        for entity in states:
-            friendly_name = entity['attributes'].get('friendly_name', '')
-            entity_id = entity['entity_id']
-            if q in entity_id.lower() or q in friendly_name.lower().replace(' ', '_'):
-                domain = entity_id.split('.')[0]
-                state = entity['state']
-                icon_string = f"{domain}_{state}"
-                icon = f"{ICONS_FOLDER}{domain}.png"
-                if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
-                    icon = f"{ICONS_FOLDER}{icon_string}.png"
-                self.add_item(
-                    title=f"{friendly_name or entity_id}",
-                    subtitle=f"[{domain}] {state}",
-                    icon=icon,
-                    context=[entity],
-                    method="action",
-                    parameters=[entity_id]
-                )
-            if len(self.results) > MAX_ITEMS:
-                break
-            
-
-        if len(self.results) == 0:
-            self.results.append({
-                    "Title": "No Results Found!",
-                    "SubTitle": "",
-                    "IcoPath": f"{ICONS_FOLDER}light_off.png",
-                })
+            self.add_item(
+                title=str(entity[item]),
+                subtitle=item,
+                icon=f"{ICONS_FOLDER}info.png",
+            )
         return self.results
 
-    def action(self, entity_id):
+    def query(self, query):
+        try:
+            q = query.lower().replace(' ', '_')
+            states = self.states()
+            for entity in states:
+                friendly_name = entity['attributes'].get('friendly_name', '')
+                entity_id = entity['entity_id']
+                if q.rstrip('_' + string.digits) in entity_id.lower() or q.rstrip('_' + string.digits) in friendly_name.lower().replace(' ', '_'):
+                    domain = self.domain(entity_id)
+                    state = entity['state']
+                    icon_string = f"{domain}_{state}"
+                    icon = f"{ICONS_FOLDER}{domain}.png"
+                    if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
+                        icon = f"{ICONS_FOLDER}{icon_string}.png"
+                    subtitle = f"[{domain}] {state}"
+                    if q.split('_')[-1].isdigit() and self.domain(entity_id, 'light'):
+                        subtitle = f"{subtitle} - Select to change brightness to: {q.split('_')[-1]}%"
+                    self.add_item(
+                        title=f"{friendly_name or entity_id}",
+                        subtitle=subtitle,
+                        icon=icon,
+                        context=[entity],
+                        method="action",
+                        parameters=[entity_id, q]
+                    )
+                if len(self.results) > MAX_ITEMS:
+                    break
+                
+
+            if len(self.results) == 0:
+                self.add_item(
+                    title="No Results Found!"
+                )
+        except Exception as e:
+            self.add_item(
+                title=e.__class__.__name__,
+                subtitle=str(e),
+                icon=f"{ICONS_FOLDER}info.png"
+            )
+        return self.results
+
+    def action(self, entity_id, q):
         API.start_loadingbar()
-        if entity_id.startswith("media_player."):
+        if self.domain(entity_id, 'light') and q.split('_')[-1].isdigit():
+            self.turn_on(entity_id, brightness_pct=int(q.split('_')[-1]))
+        elif self.domain(entity_id, 'media_player'):
             self.play_pause(entity_id)
         else:
             self.toggle(entity_id)
