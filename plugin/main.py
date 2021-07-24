@@ -20,7 +20,11 @@ SETTINGS = '../../Settings/Settings.json'
 CONFIG_FILE = './plugin/config.ini'
 DEV_CONFIG = './plugin/.dev-config.ini'
 ICONS_FOLDER = './icons/icons_white/'
+COLORS_FILE = './plugin/colors.json'
 MAX_ITEMS = 30
+
+with open(COLORS_FILE, 'r') as _f:
+    COLORS = json.load(_f)
 
 class Commander(FlowLauncher):
 
@@ -107,10 +111,12 @@ class Commander(FlowLauncher):
         else:
             self.call_services('homeassistant', 'toggle', data=data)
 
-    def turn_on(self, entity_id, **service_data):
+    def turn_on(self, entity_id, color_name=None, effect=None, **service_data):
         service_data['entity_id'] = entity_id
-        if self.domain(entity_id) == 'light':
-            service_domain = 'light'
+        if color_name:
+            service_data['color_name'] = color_name
+        if effect:
+            service_data['effect'] = effect
         self.call_services('light', 'turn_on', service_data)
 
     def play_pause(self, entity_id):
@@ -121,7 +127,11 @@ class Commander(FlowLauncher):
 
     def add_item(self, title, subtitle='', icon=None, method=None, parameters=None, context=None, hide=False):
         if icon is None or not os.path.exists(icon):
-            icon = self.icon
+            if os.path.exists(f"{ICONS_FOLDER}{icon}.png"):
+                icon = f"{ICONS_FOLDER}{icon}.png"
+            else:
+                icon = self.icon
+        
         item = {
             "Title": title,
             "SubTitle": subtitle,
@@ -144,25 +154,42 @@ class Commander(FlowLauncher):
                 subtitle=item,
                 icon=f"{ICONS_FOLDER}info.png",
             )
+        if self.domain(entity['entity_id'], 'light'):
+            for color in COLORS:
+                self.add_item(
+                    title=color.title(),
+                    subtitle='Press ENTER to change to this color',
+                    icon="palette",
+                    method="turn_on",
+                    parameters=[entity['entity_id'], color]
+                )
+            for effect in entity_attributes['effect_list']:
+                self.add_item(
+                    title=effect,
+                    icon="playlist-play",
+                    method="turn_on",
+                    parameters=[entity['entity_id'], None, effect]
+                )
         return self.results
 
     def query(self, query):
         try:
             q = query.lower().replace(' ', '_')
+            fq = q.rstrip('_' + string.digits)
             states = self.states()
             for entity in states:
                 friendly_name = entity['attributes'].get('friendly_name', '')
                 entity_id = entity['entity_id']
-                if q.rstrip('_' + string.digits) in entity_id.lower() or q.rstrip('_' + string.digits) in friendly_name.lower().replace(' ', '_'):
+                if fq in entity_id.lower() or fq in friendly_name.lower().replace(' ', '_'):
                     domain = self.domain(entity_id)
                     state = entity['state']
                     icon_string = f"{domain}_{state}"
-                    icon = f"{ICONS_FOLDER}{domain}.png"
+                    icon = domain
                     if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
-                        icon = f"{ICONS_FOLDER}{icon_string}.png"
+                        icon = icon_string
                     subtitle = f"[{domain}] {state}"
                     if q.split('_')[-1].isdigit() and self.domain(entity_id, 'light'):
-                        subtitle = f"{subtitle} - Select to change brightness to: {q.split('_')[-1]}%"
+                        subtitle = f"{subtitle} - Press ENTER to change brightness to: {q.split('_')[-1]}%"
                     self.add_item(
                         title=f"{friendly_name or entity_id}",
                         subtitle=subtitle,
