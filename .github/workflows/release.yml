@@ -41,11 +41,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ./requirements.txt -t ./lib
           zip -r HA-Commander.zip . -x '*.git*' -x 'demo.gif' -x 'README.md' -x 'assets/*'
+      - name: Generate Changelog
+        run: echo ${{ github.sha }} > ${{ github.workflow }}-CHANGELOG.txt
       - name: Publish
         if: success() && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v1
         with:
           files: 'HA-Commander.zip'
           tag_name: "v${{steps.version.outputs.prop}}"
+          body_path: ${{ github.workflow }}-CHANGELOG.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
