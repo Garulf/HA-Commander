@@ -111,10 +111,12 @@ class Commander(FlowLauncher):
         else:
             self.call_services('homeassistant', 'toggle', data=data)
 
-    def turn_on(self, entity_id, color_name=None, **service_data):
+    def turn_on(self, entity_id, color_name=None, effect=None, **service_data):
         service_data['entity_id'] = entity_id
         if color_name:
             service_data['color_name'] = color_name
+        if effect:
+            service_data['effect'] = effect
         self.call_services('light', 'turn_on', service_data)
 
     def play_pause(self, entity_id):
@@ -160,6 +162,13 @@ class Commander(FlowLauncher):
                     icon="palette",
                     method="turn_on",
                     parameters=[entity['entity_id'], color]
+                )
+            for effect in entity_attributes['effect_list']:
+                self.add_item(
+                    title=effect,
+                    icon="playlist-play",
+                    method="turn_on",
+                    parameters=[entity['entity_id'], None, effect]
                 )
         return self.results
 
