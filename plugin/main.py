@@ -184,9 +184,9 @@ class Commander(FlowLauncher):
                     domain = self.domain(entity_id)
                     state = entity['state']
                     icon_string = f"{domain}_{state}"
-                    icon = f"{ICONS_FOLDER}{domain}.png"
+                    icon = domain
                     if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
-                        icon = f"{ICONS_FOLDER}{icon_string}.png"
+                        icon = icon_string
                     subtitle = f"[{domain}] {state}"
                     if q.split('_')[-1].isdigit() and self.domain(entity_id, 'light'):
                         subtitle = f"{subtitle} - Press ENTER to change brightness to: {q.split('_')[-1]}%"
