@@ -212,7 +212,7 @@ class Commander(FlowLauncher):
                 subtitle=str(e),
                 icon=f"{ICONS_FOLDER}info.png"
             )
-        return self.results
+        return self.results[:5]
 
     def action(self, entity_id, q):
         API.start_loadingbar()
