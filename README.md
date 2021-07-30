@@ -39,7 +39,7 @@ Begin by typing the default ActionWord: "ha"
 
 ```ha automation```
 
-HA-Commander will search by `entity_id` and `firendly_name` if set.
+HA-Commander will search by `entity_id` and `friendly_name` if set.
 
 ### Interaction:
 
