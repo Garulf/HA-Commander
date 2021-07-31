@@ -93,7 +93,7 @@ class Flox(Launcher):
     def _context_menu(self, data):
         try:
 
-            self.context_menu()
+            self.context_menu(data)
 
         except Exception as e:
             self.add_item(
