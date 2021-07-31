@@ -81,6 +81,17 @@ class Commander(Flox):
         else:
             return False
 
+    def hvac_next_mode(self, entity_id):
+        entity = self.entity_state(entity_id)
+        modes = entity['attributes']['hvac_modes']
+        for idx, mode in enumerate(modes):
+            if mode == entity['state']:
+                new_mode = idx + 1
+                if mode == modes[-1]:
+                    new_mode = 0
+                self.call_services('climate', 'set_hvac_mode', {'entity_id': entity_id, 'hvac_mode': modes[new_mode]})
+
+
     def toggle(self, entity_id):
         data = {
             "entity_id": entity_id
@@ -186,6 +197,8 @@ class Commander(Flox):
             self.turn_on(entity_id, brightness_pct=int(q.split('_')[-1]))
         elif self.domain(entity_id, 'media_player'):
             self.play_pause(entity_id)
+        elif self.domain(entity_id, 'climate'):
+            self.hvac_next_mode(entity_id)
         else:
             self.toggle(entity_id)
 
