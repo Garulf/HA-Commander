@@ -153,6 +153,15 @@ class Commander(Flox):
                     method="turn_on",
                     parameters=[entity['entity_id'], None, effect]
                 )
+        if self.domain(entity['entity_id'], 'climate'):
+            for mode in entity_attributes['hvac_modes']:
+                self.add_item(
+                    title=mode.title(),
+                    subtitle='Press ENTER to change to this mode',
+                    icon=self.get_icon("order-bool-descending"),
+                    method="call_services",
+                    parameters=['climate', 'set_hvac_mode', {'entity_id': entity['entity_id'], 'hvac_mode': mode}]
+                )
         return self._results
 
     def query(self, query):
