@@ -1,5 +1,9 @@
 # Installation:
 
+### Flow Lancher:
+
+Simply type `pm install ha-commander` to have the plugin installed
+
 ### Manual Installation:
 
 Unzip [HA-Commander.zip](https://github.com/Garulf/HA-Commander/releases/latest) to your launchers plugin directory.
@@ -9,6 +13,7 @@ Unzip [HA-Commander.zip](https://github.com/Garulf/HA-Commander/releases/latest)
 | Wox           | `%appdata%\Wox\Plugins`          |
 | Flow Launcher | `%appdata%\FlowLauncher\Plugins` |
 
+# Configuration
 
 Please edit your `config.ini` to complete setup:
 
@@ -34,7 +39,7 @@ Begin by typing the default ActionWord: "ha"
 
 ```ha automation```
 
-HA-Commander will search by `entity_id` and `firendly_name` if set.
+HA-Commander will search by `entity_id` and `friendly_name` if set.
 
 ### Interaction:
 
