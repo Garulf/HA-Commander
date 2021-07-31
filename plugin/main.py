@@ -4,16 +4,9 @@ import os.path
 import json
 from configparser import ConfigParser
 
-import requests
 
-try:
-    from wox import Wox as FlowLauncher
-    from wox import WoxAPI as API
-    PRETEXT = 'Wox'
-except ModuleNotFoundError:
-    from flowlauncher import FlowLauncher
-    from flowlauncher import FlowLauncherAPI as API
-    PRETEXT = 'Flow.Launcher'
+from flox import Flox
+import requests
 
 PLUGIN_JSON = './plugin.json'
 SETTINGS = '../../Settings/Settings.json'
@@ -26,10 +19,10 @@ MAX_ITEMS = 30
 with open(COLORS_FILE, 'r') as _f:
     COLORS = json.load(_f)
 
-class Commander(FlowLauncher):
+class Commander(Flox):
 
     def __init__(self):
-        self.results = []
+        self._results = []
         self.load_config()
         if self.ssl:
             self.protocol = "http://"
@@ -41,7 +34,6 @@ class Commander(FlowLauncher):
             "content-type": "application/json",
         }
         self.session = requests.Session()
-        self.settings()
         super().__init__()
 
     def load_config(self):
@@ -58,15 +50,7 @@ class Commander(FlowLauncher):
         self.verify_ssl = config[_section]['verify_ssl']
         self.max_items = config[_section].get('max_items', MAX_ITEMS)
 
-    def settings(self):
-        with open(PLUGIN_JSON, 'r') as f:
-            _json = json.load(f)
-            self.id = _json['ID']
-            self.icon = _json['IcoPath']
-        with open(SETTINGS, 'r') as f:
-            self.settings = json.load(f)
-        self.keyword = self.settings['PluginSettings']['Plugins'][self.id]['ActionKeywords'][0]
-        
+    
 
     def request(self, method, endpoint, data=None):
         url = f"{self.url}api/{endpoint}"
@@ -123,27 +107,15 @@ class Commander(FlowLauncher):
         data = {
             "entity_id": entity_id
         }
-        self.call_services('media_player', 'media_play_pause', data=data)        
+        self.call_services('media_player', 'media_play_pause', data=data)
 
-    def add_item(self, title, subtitle='', icon=None, method=None, parameters=None, context=None, hide=False):
+    def get_icon(self, icon):
         if icon is None or not os.path.exists(icon):
             if os.path.exists(f"{ICONS_FOLDER}{icon}.png"):
                 icon = f"{ICONS_FOLDER}{icon}.png"
             else:
                 icon = self.icon
-        
-        item = {
-            "Title": title,
-            "SubTitle": subtitle,
-            "IcoPath": icon,
-            "ContextData": context,
-            "JsonRPCAction": {}
-        }
-        item['JsonRPCAction']['method'] = method
-        item['JsonRPCAction']['parameters'] = parameters
-        item['JsonRPCAction']['dontHideAfterAction'] = hide        
-        self.results.append(item)
-
+        return icon
 
     def context_menu(self, data):
         entity_attributes = data[0].pop('attributes', {})
@@ -159,63 +131,57 @@ class Commander(FlowLauncher):
                 self.add_item(
                     title=color.title(),
                     subtitle='Press ENTER to change to this color',
-                    icon="palette",
+                    icon=self.get_icon("palette"),
                     method="turn_on",
                     parameters=[entity['entity_id'], color]
                 )
             for effect in entity_attributes['effect_list']:
                 self.add_item(
                     title=effect,
-                    icon="playlist-play",
+                    icon=self.get_icon("playlist-play"),
                     method="turn_on",
                     parameters=[entity['entity_id'], None, effect]
                 )
-        return self.results
+        return self._results
 
     def query(self, query):
-        try:
-            q = query.lower().replace(' ', '_')
-            fq = q.rstrip('_' + string.digits)
-            states = self.states()
-            for entity in states:
-                friendly_name = entity['attributes'].get('friendly_name', '')
-                entity_id = entity['entity_id']
-                if fq in entity_id.lower() or fq in friendly_name.lower().replace(' ', '_'):
-                    domain = self.domain(entity_id)
-                    state = entity['state']
-                    icon_string = f"{domain}_{state}"
-                    icon = domain
-                    if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
-                        icon = icon_string
-                    subtitle = f"[{domain}] {state}"
-                    if q.split('_')[-1].isdigit() and self.domain(entity_id, 'light'):
-                        subtitle = f"{subtitle} - Press ENTER to change brightness to: {q.split('_')[-1]}%"
-                    self.add_item(
-                        title=f"{friendly_name or entity_id}",
-                        subtitle=subtitle,
-                        icon=icon,
-                        context=[entity],
-                        method="action",
-                        parameters=[entity_id, q]
-                    )
-                if len(self.results) > MAX_ITEMS:
-                    break
-                
 
-            if len(self.results) == 0:
+        q = query.lower().replace(' ', '_')
+        fq = q.rstrip('_' + string.digits)
+        states = self.states()
+        for entity in states:
+            friendly_name = entity['attributes'].get('friendly_name', '')
+            entity_id = entity['entity_id']
+            if fq in entity_id.lower() or fq in friendly_name.lower().replace(' ', '_'):
+                domain = self.domain(entity_id)
+                state = entity['state']
+                icon_string = f"{domain}_{state}"
+                icon = domain
+                if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
+                    icon = icon_string
+                subtitle = f"[{domain}] {state}"
+                if q.split('_')[-1].isdigit() and self.domain(entity_id, 'light'):
+                    subtitle = f"{subtitle} - Press ENTER to change brightness to: {q.split('_')[-1]}%"
                 self.add_item(
-                    title="No Results Found!"
+                    title=f"{friendly_name or entity_id}",
+                    subtitle=subtitle,
+                    icon=self.get_icon(icon),
+                    context=[entity],
+                    method="action",
+                    parameters=[entity_id, q]
                 )
-        except Exception as e:
+            if len(self._results) > MAX_ITEMS:
+                break
+            
+
+        if len(self._results) == 0:
             self.add_item(
-                title=e.__class__.__name__,
-                subtitle=str(e),
-                icon=f"{ICONS_FOLDER}info.png"
+                title="No Results Found!"
             )
-        return self.results
+        return self._results[:5]
 
     def action(self, entity_id, q):
-        API.start_loadingbar()
+        # API.start_loadingbar()
         if self.domain(entity_id, 'light') and q.split('_')[-1].isdigit():
             self.turn_on(entity_id, brightness_pct=int(q.split('_')[-1]))
         elif self.domain(entity_id, 'media_player'):
