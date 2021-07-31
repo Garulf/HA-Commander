@@ -131,12 +131,6 @@ class Commander(Flox):
     def context_menu(self, data):
         entity_attributes = data[0].pop('attributes', {})
         entity = {**data[0], **entity_attributes}
-        for item in entity:
-            self.add_item(
-                title=str(entity[item]),
-                subtitle=item,
-                icon=f"{ICONS_FOLDER}info.png",
-            )
         if self.domain(entity['entity_id'], 'light'):
             for color in COLORS:
                 self.add_item(
@@ -162,6 +156,12 @@ class Commander(Flox):
                     method="call_services",
                     parameters=['climate', 'set_hvac_mode', {'entity_id': entity['entity_id'], 'hvac_mode': mode}]
                 )
+        for item in entity:
+            self.add_item(
+                title=str(entity[item]),
+                subtitle=item,
+                icon=f"{ICONS_FOLDER}info.png",
+            )
         return self._results
 
     def query(self, query):
