@@ -23,7 +23,7 @@ jobs:
         with:
           file: plugin.json
           field: Version
-          value: ${{ VERSION }}
+          value: ${{ env.VERSION }}
       - name: Move Flox to plugin root
         run: |
           mv -r ./lib/flox . && rm -r ./lib/Flox-*dist-info
