@@ -16,7 +16,7 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
-          name: fragment
+          name: build-artifact
           path: .
       - name: "Update plugin.json version to: ${{ env.VERSION }}"
         uses: jossef/action-set-json-field@v1
