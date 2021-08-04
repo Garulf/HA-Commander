@@ -56,7 +56,7 @@ jobs:
           value: ${{ env.VERSION }}
       - name: Move Flox to plugin root
         run: |
-          mv ./lib/flox . && rm -r ./lib/Flox-*dist-info
+          mv ./lib/flox . && rm -r ./lib/Flox-*-info
       - name: Package files
         run: |
           zip -r "${{github.event.repository.name}}.zip" . -x '*.git*' -x 'demo.gif' -x 'README.md' -x 'assets/*'
