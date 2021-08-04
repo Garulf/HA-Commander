@@ -53,8 +53,12 @@ jobs:
           file: plugin.json
           field: Version
           value: "${{ steps.version.outputs.VERSION }}"
+      - name: Move Flox to plugin root
+        run: |
+          mv -r ./lib/flox . && rm -r ./lib/Flox-*dist-info
       - name: Package files
-        run: zip -r HA-Commander.zip . -x '*.git*' -x 'demo.gif' -x 'README.md' -x 'assets/*'
+        run: |
+          zip -r HA-Commander.zip . -x '*.git*' -x 'demo.gif' -x 'README.md' -x 'assets/*'
       - name: Publish
         if: success()
         uses: softprops/action-gh-release@v1
