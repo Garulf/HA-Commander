@@ -2,8 +2,14 @@ name: Build & Release
 
 on:
   workflow_dispatch:
-  release:
-    types: [unpublished]
+  push:
+    branches: [ main ]
+    tags:
+      - '*'
+    paths-ignore: 
+      - .github/workflows/*
+      - README.md
+      - assets/*
 
 env:
   PYTHON_VER: 3.6
