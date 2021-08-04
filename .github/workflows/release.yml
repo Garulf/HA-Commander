@@ -36,7 +36,7 @@ jobs:
           name: fragment
           path: . # or path/to/artifact
   package:
-    name: Build Plugin
+    name: Package Release
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -52,7 +52,7 @@ jobs:
         with:
           file: plugin.json
           field: Version
-          value: ${{steps.version.outputs.VERSION}}
+          value: "${{ steps.version.outputs.VERSION }}"
       - name: Package files
         run: zip -r HA-Commander.zip . -x '*.git*' -x 'demo.gif' -x 'README.md' -x 'assets/*'
       - name: Publish
