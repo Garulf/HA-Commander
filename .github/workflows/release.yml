@@ -1,51 +1,65 @@
-name: Publish Release
+name: Release Plugin
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
-    paths-ignore: 
-      - .github/workflows/*
-      - README.md
-      - assets/*
+  release:
+    types: [published]
+
+env:
+  PYTHON_VER: 3.6
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.9]
+  build:
+    name: Build Plugin
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Checkout REPO
+        uses: actions/checkout@v2
+      - name: Set up Python ${{ env.PYTHON_VER }}
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: get version
-        id: version
-        uses: notiz-dev/github-action-json-property@release
-        with: 
-          path: 'plugin.json'
-          prop_path: 'Version'
-      - run: echo ${{steps.version.outputs.prop}}
+          python-version: ${{ env.PYTHON_VER }}
       - uses: actions/cache@v2
-        if: startsWith(runner.os, 'Linux')
+        if: startsWith(runner.os, 'Windows')
         with:
-          path: ~/.cache/pip
+          path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Install dependencies
         run: |
-          sudo apt-get install -y gettext
           python -m pip install --upgrade pip
           pip install -r ./requirements.txt -t ./lib
-          zip -r HA-Commander.zip . -x '*.git*' -x 'demo.gif' -x 'README.md' -x 'assets/*'
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: fragment
+          path: . # or path/to/artifact
+  package:
+    name: Build Plugin
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get release version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
+      - name: Download Artifact
+      - uses: actions/download-artifact@v2
+        with:
+          name: fragment
+          path: .
+      - name: "Update plugin.json version to: ${{steps.version.outputs.VERSION}}"
+        uses: jossef/action-set-json-field@v1
+        with:
+          file: plugin.json
+          field: Version
+          value: ${{steps.version.outputs.VERSION}}
+      - name: Package files
+        run: zip -r HA-Commander.zip . -x '*.git*' -x 'demo.gif' -x 'README.md' -x 'assets/*'
       - name: Publish
-        if: success() && github.ref == 'refs/heads/main'
+        if: success()
         uses: softprops/action-gh-release@v1
         with:
           files: 'HA-Commander.zip'
-          tag_name: "v${{steps.version.outputs.prop}}"
+          tag_name: "v${{steps.version.outputs.VERSION}}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
