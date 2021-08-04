@@ -138,3 +138,7 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 .dev-config.ini
+
+# Flox directory
+flox/
+Flox-*.dist-info/
