@@ -35,6 +35,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: 'HA-Commander.zip'
-          tag_name: "v${{VERSION}}"
+          tag_name: "v${{ env.VERSION }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
