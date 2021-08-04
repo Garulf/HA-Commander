@@ -14,20 +14,21 @@ jobs:
     name: Linter Code
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repo
       - uses: actions/checkout@v2
-      - name: Lint Code Base
-        uses: github/super-linter@v4
-        env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: master
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Python environment
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+      - name: flake8 Lint
+        uses: py-actions/flake8@v1
   deps:
     name: Install dependencies
     needs: linter
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [3.6]
+        python-version: [3.8]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
