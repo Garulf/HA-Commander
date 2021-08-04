@@ -41,7 +41,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get release version
-        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+      - name: Grab latest release
+        id: latest
+        if: ${{ env.version == '' }}
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: ${{ github.repository }}
       - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
