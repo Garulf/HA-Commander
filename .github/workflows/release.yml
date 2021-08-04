@@ -3,7 +3,7 @@ name: Build & Release
 on:
   workflow_dispatch:
   release:
-    types: [published]
+    types: [unpublished]
 
 env:
   PYTHON_VER: 3.6
