@@ -16,43 +16,29 @@ env:
 
 
 jobs:
-  build:
-    name: Build Plugin
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up Python ${{ env.PYTHON_VER }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ env.PYTHON_VER }}
-      - uses: actions/cache@v2
-        if: startsWith(runner.os, 'Windows')
-        with:
-          path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r ./requirements.txt -t ./lib
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: build-artifact
-          path: . # or path/to/artifact
   package:
     name: Package Release
     needs: build
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO_SLUG: ${{ github.repository }}
+      BRANCH: "main"
+      WORKFLOW: "build.yml"
     steps:
+      - id: curl
+        run: |
+          RUN_ID=$(curl -sLH 'Accept: application/vnd.github.v3+json' -H "Authorization: token $GITHUB_TOKEN" "api.github.com/repos/$REPO_SLUG/actions/workflows/$WORKFLOW/runs" | jq --arg branch "$BRANCH" -c '[.workflow_runs[] | select( .conclusion == "success" and .head_branch == $branch)][0] | .id')
+          echo "::set-output name=RUN_ID::$RUN_ID"
       - name: Get release version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-      - name: Download Artifact
-        uses: actions/download-artifact@v2
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
         with:
-          name: build-artifact
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          run_id: ${{ steps.curl.outputs.RUN_ID }}
+          name: build
+          workflow: ${{ env.WORKFLOW }}
           path: .
       - name: "Update plugin.json version to: ${{ env.VERSION }}"
         uses: jossef/action-set-json-field@v1
@@ -60,6 +46,16 @@ jobs:
           file: plugin.json
           field: Version
           value: ${{ env.VERSION }}
+      - name: Commit version change
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add ./plugin.json
+          git commit -m "bumping release ${{ env.VERSION }}"
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ github.token }}
       - name: Move Flox to plugin root
         run: |
           mv ./lib/flox . && rm -r ./lib/Flox-*-info
