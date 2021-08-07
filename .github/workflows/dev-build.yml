@@ -65,5 +65,4 @@ jobs:
           automatic_release_tag: "dev"
           prerelease: true
           title: "Dev Build"
-          files: |
-            "${{github.event.repository.name}}.zip"
+          files: "${{ github.event.repository.name }}.zip"
