@@ -1,4 +1,4 @@
-name: "pre-release"
+name: "Dev-Build"
 
 on:
   workflow_dispatch:
@@ -44,6 +44,12 @@ jobs:
     needs: deps
     runs-on: "ubuntu-latest"
     steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifact
+  with:
+    name: my-artifact
       - name: Get release version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
       - name: "Update plugin.json version to: ${{ env.VERSION }}"
