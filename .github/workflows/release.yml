@@ -30,6 +30,7 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0
         with:
+          branch: main
           github_token: ${{ github.token }}
       - name: Download dev build
         uses: dsaltares/fetch-gh-release-asset@master
