@@ -52,7 +52,6 @@ jobs:
         if: success()
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "v${{ env.VERSION }}"
           prerelease: false
           title: "v${{ env.VERSION }}"
           files: |
