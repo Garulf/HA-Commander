@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
     tags:
-      - '*'
+      - 'v*'
     paths-ignore: 
       - .github/workflows/*
       - README.md
