@@ -1,72 +1,61 @@
 name: Release
 
 on:
-  workflow_dispatch:
   push:
     branches: [ main ]
     tags:
       - 'v*'
-    paths-ignore: 
-      - .github/workflows/*
-      - README.md
-      - assets/*
-
-env:
-  PYTHON_VER: 3.6
 
 
 jobs:
-  package:
+  release:
     name: Package Release
-    needs: build
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      REPO_SLUG: ${{ github.repository }}
-      BRANCH: "main"
-      WORKFLOW: "build.yml"
     steps:
-      - id: curl
-        run: |
-          RUN_ID=$(curl -sLH 'Accept: application/vnd.github.v3+json' -H "Authorization: token $GITHUB_TOKEN" "api.github.com/repos/$REPO_SLUG/actions/workflows/$WORKFLOW/runs" | jq --arg branch "$BRANCH" -c '[.workflow_runs[] | select( .conclusion == "success" and .head_branch == $branch)][0] | .id')
-          echo "::set-output name=RUN_ID::$RUN_ID"
-      - name: Get release version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-      - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          run_id: ${{ steps.curl.outputs.RUN_ID }}
-          name: build
-          workflow: ${{ env.WORKFLOW }}
-          path: .
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: "Update plugin.json version to: ${{ env.VERSION }}"
         uses: jossef/action-set-json-field@v1
         with:
           file: plugin.json
           field: Version
           value: ${{ env.VERSION }}
+      - name: Get release version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
       - name: Commit version change
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add ./plugin.json
-          git commit -m "bumping release ${{ env.VERSION }}"
+          git commit -m "bumping versioning ${{ env.VERSION }}"
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0
         with:
           github_token: ${{ github.token }}
-      - name: Move Flox to plugin root
+      - name: Download dev build
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: ${{ github.repository }}
+          version: "tags/dev"
+          file: "${{github.event.repository.name}}.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Unzip prelease
         run: |
-          mv ./lib/flox . && rm -r ./lib/Flox-*-info
-      - name: Package files
+          mkdir -p ./staging
+          unzip -d ./staging "${{github.event.repository.name}}.zip"
+          mv ./plugin.json ./staging
+      - name: Zip release
         run: |
+          cd ./staging
           zip -r "${{github.event.repository.name}}.zip" . -x '*.git*' -x 'demo.gif' -x 'README.md' -x 'assets/*'
       - name: Publish
+        uses: "marvinpinto/action-automatic-releases@latest"
         if: success()
-        uses: softprops/action-gh-release@v1
         with:
-          files: "${{github.event.repository.name}}.zip"
-          tag_name: "v${{ env.VERSION }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "v${{ env.VERSION }}"
+          prerelease: false
+          title: "v${{ env.VERSION }}"
+          files: |
+            "${{github.event.repository.name}}.zip"
+
