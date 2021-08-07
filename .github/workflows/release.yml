@@ -53,7 +53,7 @@ jobs:
       - name: Unzip prelease & zip release
         run: |
           shopt -s extglob
-          rm -v !("plugin.json"|"${{github.event.repository.name}}.zip")
+          rm -v -r !("plugin.json"|"${{github.event.repository.name}}.zip")
           unzip -n "${{github.event.repository.name}}.zip"
           rm -v "${{github.event.repository.name}}.zip"
           zip -r "${{github.event.repository.name}}.zip" . -x '*.git*' -x 'demo.gif' -x 'README.md' -x 'assets/*'
