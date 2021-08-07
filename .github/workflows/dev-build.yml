@@ -13,7 +13,7 @@ on:
 
 jobs:
   deps:
-  if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     name: "Install Dependencies"
     runs-on: windows-latest
     steps:
