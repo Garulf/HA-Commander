@@ -56,7 +56,7 @@ jobs:
           prerelease: false
           title: "v${{ env.VERSION }}"
           files: |
-            "./${{github.event.repository.name}}.zip"
+            "./staging/${{github.event.repository.name}}.zip"
       - name: Remove dev build
         uses: dev-drprasad/delete-older-releases@v0.2.0
         with:
