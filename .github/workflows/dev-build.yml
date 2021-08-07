@@ -17,7 +17,6 @@ jobs:
     name: "Install Dependencies"
     runs-on: windows-latest
     steps:
-    steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Set up Python ${{ env.PYTHON_VER }}
@@ -44,6 +43,7 @@ jobs:
     name: Package Plugin
     needs: deps
     runs-on: "ubuntu-latest"
+    steps:
       - name: Get release version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
       - name: "Update plugin.json version to: ${{ env.VERSION }}"
