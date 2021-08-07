@@ -68,6 +68,7 @@ jobs:
           files: |
             "./${{github.event.repository.name}}.zip"
       - name: Remove dev build
+        if: ${{ success() }}
         uses: dev-drprasad/delete-older-releases@v0.2.0
         with:
           delete_tag_pattern: dev
