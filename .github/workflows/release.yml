@@ -61,6 +61,7 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
+          draft: true
           title: "v${{ env.VERSION }}"
           files: "./${{github.event.repository.name}}.zip"
       - name: Remove dev build
