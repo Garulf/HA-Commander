@@ -1,5 +1,4 @@
 name: "Dev-Builder"
-
 on:
   workflow_dispatch:
   push:
@@ -10,15 +9,16 @@ on:
       - .github/workflows/*
       - README.md
       - assets/*
-
 jobs:
   deps:
     if: ${{ github.ref == 'refs/heads/main' }}
-    name: "Install Dependencies"
+    name: "Build"
     runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Set up Python ${{ env.PYTHON_VER }}
         uses: actions/setup-python@v2
         with:
@@ -34,35 +34,38 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r ./requirements.txt -t ./lib
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+      - name: Determine versioning
+        id: version
+        uses: paulhatch/semantic-version@v4.0.1
         with:
-          name: build-artifact
-          path: .
-  package:
-    name: Package Plugin
-    needs: deps
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: build-artifact
-      - name: Get release version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-      - name: "Update plugin.json version to: ${{ env.VERSION }}"
+          tag_prefix: "v"
+          major_pattern: "(MAJOR)"
+          minor_pattern: "(MINOR)"
+          format: "${major}.${minor}.${patch}"
+          short_tags: false
+          bump_each_commit: false
+      - name: "Update plugin.json version to: ${{steps.version.outputs.prop}}"
         uses: jossef/action-set-json-field@v1
         with:
-          file: plugin.json
+          file: 'plugin.json'
           field: Version
-          value: "${{ env.VERSION }}-dev"
+          value: "${{steps.version.outputs.major}}.${{steps.version.outputs.minor}}.${{steps.version.outputs.patch}}-dev"
       - name: Package files
         run: |
-          zip -r "${{github.event.repository.name}}.zip" . -x '*.git*' -x 'demo.gif' -x 'README.md' -x 'assets/*'
-      - uses: "marvinpinto/action-automatic-releases@latest"
+          $exclude = @("demo.*","*.git*","README.*", "assets")
+          $path = "./*"
+          $files = Get-ChildItem -Path $path -Exclude $exclude
+          echo $files
+          Compress-Archive -DestinationPath ./"${{github.event.repository.name}}.zip" -Path $files
+      - name: Delete previous drafts
+        uses: hugo19941994/delete-draft-releases@v0.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish
+        uses: softprops/action-gh-release@v1
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "dev"
-          prerelease: true
-          title: "Dev Build"
-          files: "./${{ github.event.repository.name }}.zip"
+          draft: true
+          files: "./${{github.event.repository.name}}.zip"
+          tag_name: "v${{steps.version.outputs.version}}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
