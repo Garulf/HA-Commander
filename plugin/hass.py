@@ -1,6 +1,8 @@
+import os
+import sys
 import json
-import requests
 
+import requests
 
 class HomeAssistant(object):
     def __init__(self, protocol, host, port, token, verify_ssl=True):
@@ -9,8 +11,12 @@ class HomeAssistant(object):
             "Authorization": f"Bearer {token}",
             "content-type": "application/json",
         }
+        self._cacert = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), "lib", "certifi", "cacert.pem")
         self._verify_ssl = verify_ssl
+        if self._verify_ssl:
+            self._verify_ssl = self._cacert
         self._session = requests.Session()
+
 
     def request(self, method, endpoint, data=None):
         url = f"{self._url}api/{endpoint}"
