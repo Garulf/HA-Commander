@@ -25,9 +25,9 @@ class Commander(Flox):
         self._results = []
         self.load_config()
         if self._ssl:
-            self._protocol = "http://"
-        else:
             self._protocol = "https://"
+        else:
+            self._protocol = "http://"
         self.hass = HomeAssistant(
             self._protocol, self._host, self._port, self._token, self._verify_ssl
         )
@@ -43,8 +43,8 @@ class Commander(Flox):
         self._host = config[_section]["host"]
         self._port = config[_section]["port"]
         self._token = config[_section]["token"]
-        self._ssl = config[_section]["ssl"]
-        self._verify_ssl = config[_section]["verify_ssl"]
+        self._ssl = config[_section].getboolean("ssl")
+        self._verify_ssl = config[_section].getboolean("verify_ssl")
         self._max_items = config[_section].get("max_items", MAX_ITEMS)
 
     def get_icon(self, icon):
@@ -83,14 +83,13 @@ class Commander(Flox):
         return self._results
 
     def query(self, query):
-
         q = query.lower().replace(" ", "_")
         fq = q.rstrip("_" + string.digits)
         states = self.hass.states()
         for entity in states:
             friendly_name = entity["attributes"].get("friendly_name", "")
             entity_id = entity["entity_id"]
-            if fq in entity_id.lower() or fq in friendly_name.lower().replace(" ", "_"):
+            if fq in entity_id.lower().replace(".", "_") or fq in friendly_name.lower().replace(" ", "_"):
                 domain = self.hass.domain(entity_id)
                 state = entity["state"]
                 icon_string = f"{domain}_{state}"
