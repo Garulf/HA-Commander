@@ -1,8 +1,17 @@
-name: "Dev-Builder"
+name: "Release-Builder"
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
+    tags-ignore:
+      - 'v*'
+    paths-ignore: 
+      - .github/workflows/*
+      - README.md
+      - assets/*
 jobs:
   deps:
+    if: ${{ github.ref == 'refs/heads/main' }}
     name: "Build"
     runs-on: windows-latest
     steps:
@@ -35,7 +44,7 @@ jobs:
           minor_pattern: "(MINOR)"
           format: "${major}.${minor}.${patch}"
           short_tags: false
-          bump_each_commit: true
+          bump_each_commit: false
       - name: "Update plugin.json version to: ${{steps.version.outputs.prop}}"
         uses: jossef/action-set-json-field@v1
         with:
@@ -48,13 +57,13 @@ jobs:
           pip install -r ./bin/requirements.txt
           python ./bin/commands.py package -n "${{github.event.repository.name}}.zip"
       - name: Delete previous drafts
-        uses: Garulf/delete-draft-releases@v0.2.0
+        uses: hugo19941994/delete-draft-releases@v0.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish
         uses: softprops/action-gh-release@v1
         with:
-          prerelease: true
+          draft: true
           files: "./${{github.event.repository.name}}.zip"
           tag_name: "v${{steps.version.outputs.version}}"
         env:
