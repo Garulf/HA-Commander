@@ -1,4 +1,4 @@
-![GitHub all releases](https://img.shields.io/github/downloads/garulf/ha-commander/total)
+[![GitHub all releases](https://img.shields.io/github/downloads/garulf/ha-commander/total)](https://github.com/Garulf/HA-Commander/releases/latest)
 # Installation:
 
 ### Flow Lancher:
