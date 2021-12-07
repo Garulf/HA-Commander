@@ -1,7 +1,9 @@
 [![GitHub all releases](https://img.shields.io/github/downloads/garulf/ha-commander/total)](https://github.com/Garulf/HA-Commander/releases/latest)
 # Installation:
 
-### Flow Lancher:
+### Flow Launcher:
+
+![Flow_launcher](https://user-images.githubusercontent.com/535299/145097675-e4d3f41a-4042-4f2a-b707-238b8c6d220c.png)
 
 Simply type `pm install ha-commander` to have the plugin installed
 
