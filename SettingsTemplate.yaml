@@ -1,0 +1,36 @@
+body:
+  - type: textBlock
+    attributes:
+      name: description
+      description: >
+        Please provide a valid URL and long term API token to access your Home Assistant instance.
+  - type: input
+    attributes:
+      name: url
+      label: 'URL:'
+      defaultValue: "http://localhost:8123"
+      description: http(s)://host:port
+  - type: passwordBox
+    attributes:
+      name: token
+      label: 'Token:'
+      defaultValue: ""
+      description: Long term API token
+  - type: checkbox
+    attributes:
+      name: verify_ssl
+      label: 'Verify SSL:'
+      defaultValue: "true"
+      description: Check for valid SSL certification
+  - type: dropdown
+    attributes:
+      name: max_results
+      label: 'Max results:'
+      defaultValue: 25
+      options:
+        - 5
+        - 10
+        - 15
+        - 20
+        - 25
+        - 30
