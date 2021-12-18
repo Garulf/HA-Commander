@@ -2,7 +2,7 @@
   "ID": "B2D2C23B055D411GH66FF0C79D6C2A6H",
   "ActionKeyword": "ha",
   "Name": "HA-Commander",
-  "Description": "Search, and interact with Home Assistant using Wox or Flow LAuncher.",
+  "Description": "Search, and interact with Home Assistant using Wox or Flow Launcher.",
   "Author": "Garulf",
   "Version": "3.0.0",
   "Language": "python",
