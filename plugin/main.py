@@ -2,7 +2,6 @@
 import string
 import os.path
 import json
-from configparser import ConfigParser
 
 
 from flox import Flox
@@ -20,114 +19,89 @@ with open(COLORS_FILE, "r") as _f:
     COLORS = json.load(_f)
 
 
+def match(query, entity, friendly_name):
+    fq = query.rstrip("_" + string.digits)
+    if fq in entity.lower().replace(".", "_") or fq in friendly_name.lower().replace(" ", "_"):
+        return True
+    return False
+
 class Commander(Flox):
-    def __init__(self):
-        self._results = []
-        self.load_config()
-        if self._ssl:
-            self._protocol = "https://"
-        else:
-            self._protocol = "http://"
+
+    def init_hass(self):
         self.hass = HomeAssistant(
-            self._protocol, self._host, self._port, self._token, self._verify_ssl
+            self.settings.get('url'), self.settings.get('token'), self.settings.get('verify_ssl')
         )
-        super().__init__()
 
-    def load_config(self):
-        config = ConfigParser()
-        config_file = CONFIG_FILE
-        if os.path.exists(DEV_CONFIG):
-            config_file = DEV_CONFIG
-        config.read(config_file)
-        _section = config.sections()[0]
-        self._host = config[_section]["host"]
-        self._port = config[_section]["port"]
-        self._token = config[_section]["token"]
-        self._ssl = config[_section].getboolean("ssl")
-        self._verify_ssl = config[_section].getboolean("verify_ssl")
-        self._max_items = config[_section].get("max_items", MAX_ITEMS)
-
-    def get_icon(self, icon):
-        if icon is None or not os.path.exists(icon):
-            if os.path.exists(f"{ICONS_FOLDER}{icon}.png"):
-                icon = f"{ICONS_FOLDER}{icon}.png"
-            else:
-                icon = self.icon
-        return icon
-
-    def context_menu(self, data):
-        entity_attributes = data[0].pop("attributes", {})
-        entity = {**data[0], **entity_attributes}
-        for item in entity:
-            self.add_item(
-                title=str(entity[item]),
-                subtitle=item,
-                icon=f"{ICONS_FOLDER}info.png",
-            )
-        if self.hass.domain(entity["entity_id"], "light"):
-            for color in COLORS:
-                self.add_item(
-                    title=color.title(),
-                    subtitle="Press ENTER to change to this color",
-                    icon=self.get_icon("palette"),
-                    method="turn_on",
-                    parameters=[entity["entity_id"], color],
-                )
-            for effect in entity_attributes["effect_list"]:
-                self.add_item(
-                    title=effect,
-                    icon=self.get_icon("playlist-play"),
-                    method="turn_on",
-                    parameters=[entity["entity_id"], None, effect],
-                )
-        return self._results
+    def get_icon(self, domain, state=None):
+        domain_state_icon = os.path.join(ICONS_FOLDER, f"{domain}_{state}.png")
+        domain_icon = os.path.join(ICONS_FOLDER, f"{domain}.png")
+        if os.path.exists(domain_state_icon):
+            return domain_state_icon
+        elif os.path.exists(domain_icon):
+            return domain_icon
+        return self.icon
 
     def query(self, query):
+        self.init_hass()
         q = query.lower().replace(" ", "_")
-        fq = q.rstrip("_" + string.digits)
         states = self.hass.states()
         for entity in states:
-            friendly_name = entity["attributes"].get("friendly_name", "")
-            entity_id = entity["entity_id"]
-            if fq in entity_id.lower().replace(".", "_") or fq in friendly_name.lower().replace(" ", "_"):
-                domain = self.hass.domain(entity_id)
-                state = entity["state"]
-                icon_string = f"{domain}_{state}"
-                icon = domain
-                if os.path.exists(f"{ICONS_FOLDER}{icon_string}.png"):
-                    icon = icon_string
-                subtitle = f"[{domain}] {state}"
-                if q.split("_")[-1].isdigit() and self.hass.domain(entity_id, "light"):
+            if match(q, entity.entity_id, entity.friendly_name):
+                subtitle = f"[{entity.domain}] {entity.state}"
+                if q.split("_")[-1].isdigit() and self.hass.domain(entity.entity_id, "light"):
                     subtitle = f"{subtitle} - Press ENTER to change brightness to: {q.split('_')[-1]}%"
                 self.add_item(
-                    title=f"{friendly_name or entity_id}",
+                    title=f"{entity.friendly_name or entity.entity_id}",
                     subtitle=subtitle,
-                    icon=self.get_icon(icon),
-                    context=[entity],
+                    icon=self.get_icon(entity.domain, entity.state),
+                    context=[entity._entity],
                     method="action",
-                    parameters=[entity_id, q],
+                    parameters=[entity._entity, q],
                 )
             if len(self._results) > MAX_ITEMS:
                 break
 
         if len(self._results) == 0:
             self.add_item(title="No Results Found!")
-        return self._results[:5]
+            
+    def context_menu(self, data):
+        self.init_hass()
+        entity = self.hass.create_entity(data[0])
+        if self.hass.domain(entity.entity_id, "light"):
+            for color in COLORS:
+                self.add_item(
+                    title=color.title(),
+                    subtitle="Press ENTER to change to this color",
+                    icon=self.get_icon("palette"),
+                    method=self.change_color,
+                    parameters=[entity._entity, color],
+                )
+            for effect in entity.attributes["effect_list"]:
+                self.add_item(
+                    title=effect,
+                    icon=self.get_icon("playlist-play"),
+                    method=self.effect,
+                    parameters=[entity._entity, effect],
+                )
+        return self._results
 
     def action(self, entity_id, q):
-        # API.start_loadingbar()
-        if self.hass.domain(entity_id, "light") and q.split("_")[-1].isdigit():
-            self.hass.turn_on(entity_id, brightness_pct=int(q.split("_")[-1]))
-        elif self.hass.domain(entity_id, "climate"):
-            self.hass.call_services(
-                "climate",
-                "set_hvac_mode",
-                {"entity_id": entity_id, "hvac_mode": "cool"},
-            )
-        elif self.hass.domain(entity_id, "media_player"):
-            self.hass.play_pause(entity_id)
+        self.init_hass()
+        entity = self.hass.create_entity(entity_id)
+        if self.hass.domain(entity.entity_id, "light") and q.split("_")[-1].isdigit():
+            entity.brightness = int(q.split("_")[-1])
         else:
-            self.hass.toggle(entity_id)
+            entity.default_action()
+
+    def change_color(self, entity, color):
+        self.init_hass()
+        entity = self.hass.create_entity(entity)
+        entity.color(color)
+
+    def effect(self, entity, effect):
+        self.init_hass()
+        entity = self.hass.create_entity(entity)
+        entity.effect(effect)
 
 
 if __name__ == "__main__":
