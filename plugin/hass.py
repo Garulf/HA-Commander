@@ -218,6 +218,21 @@ class Climate(Entity):
         service_data["hvac_mode"] = self.hvac_modes[mode_index]
         self.HomeAssistant.call_services("climate", "set_hvac_mode", data=service_data)
 
+class Script(Entity):
+    """Representation of a Script entity."""
+
+    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
+        super().__init__(HomeAssistant, entity)
+        self.__doc__ = self.state
+
+
+    def _default_action(self):
+        self.run()
+
+    def run(self) -> None:
+        """Run script."""
+        self.HomeAssistant.call_services("script", "turn_on", data=self.target)
+
 if __name__ == '__main__':
     hass = HomeAssistant(
         "http://10.0.0.12:8123", 
