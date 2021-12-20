@@ -96,7 +96,7 @@ class Entity(object):
         self.attributes = entity['attributes']
         self.target = {"entity_id": self.entity_id}
 
-    def default_action(self):
+    def _default_action(self):
         """Default action for entity."""
         self.toggle()
 
@@ -118,7 +118,7 @@ class Entity(object):
         service_data["entity_id"] = self.entity_id
         self.HomeAssistant.call_services("homeassistant", "turn_off", data=service_data)
 
-    def update(self):
+    def _update(self):
         self.__init__(self.HomeAssistant, self.HomeAssistant.entity_state(self.entity_id))
 
 class Light(Entity):
@@ -205,16 +205,15 @@ class Climate(Entity):
         super().__init__(HomeAssistant, entity)
         self.hvac_modes = self._entity["attributes"].get("hvac_modes", [])
 
-    def default_action(self):
+    def _default_action(self):
         self.cycle_mode()
 
     def cycle_mode(self) -> None:
         """Cycle climate."""
-        self.update()
+        self._update()
         mode_index = self.hvac_modes.index(self.state) + 1
         if mode_index == len(self.hvac_modes):
             mode_index = 0
-
         service_data = self.target
         service_data["hvac_mode"] = self.hvac_modes[mode_index]
         self.HomeAssistant.call_services("climate", "set_hvac_mode", data=service_data)
