@@ -33,6 +33,8 @@ class Commander(Flox):
         )
 
     def get_icon(self, domain, state=None):
+        if state == "unavailable":
+            return os.path.join(ICONS_FOLDER, "alert.png")
         domain_state_icon = os.path.join(ICONS_FOLDER, f"{domain}_{state}.png")
         domain_icon = os.path.join(ICONS_FOLDER, f"{domain}.png")
         if os.path.exists(domain_state_icon):
