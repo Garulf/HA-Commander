@@ -92,7 +92,7 @@ class Base(object):
                     return chr(int(_icon['codepoint'], 16))
         return None
 
-class HomeAssistant(Base):
+class Client(Base):
 
     def __init__(self, url, token, verify_ssl=True):
         super().__init__(url, token, verify_ssl)
@@ -151,8 +151,8 @@ class HomeAssistant(Base):
 
 
 class BaseEntity(object):
-    def __init__(self, HomeAssistant, entity):
-        self._HomeAssistant = HomeAssistant
+    def __init__(self, Client, entity):
+        self._Client = Client
         self._entity = entity
         self.entity_id = entity.get("entity_id")
         self.domain = self.entity_id.split(".")[0]
@@ -170,7 +170,7 @@ class BaseEntity(object):
         return self._entity
 
     def _icon(self):
-        icon = self._HomeAssistant.grab_icon(self.domain, self.state)
+        icon = self._Client.grab_icon(self.domain, self.state)
         if not icon and self.attributes.get('icon'):
             with open(META_FILE, 'r') as f:
                 for _icon in json.load(f):
@@ -180,13 +180,13 @@ class BaseEntity(object):
         return icon
 
     def _update(self):
-        self.__init__(self._HomeAssistant, self._HomeAssistant.entity_state(self.entity_id))
+        self.__init__(self._Client, self._Client.entity_state(self.entity_id))
 
 class Entity(BaseEntity):
     """Representation of a generic entity."""
     
-    def __init__(self, HomeAssistant, entity):
-        super().__init__(HomeAssistant, entity)
+    def __init__(self, Client, entity):
+        super().__init__(Client, entity)
 
     def __call__(self):
         self._default_action()
@@ -196,9 +196,9 @@ class Entity(BaseEntity):
         self.toggle()
 
     @service(icon="swap-horizontal-bold", score=150)
-    def toggle(self, domain="homeassistant") -> None:
+    def toggle(self, domain="Client") -> None:
         """Toggle entity."""
-        self._HomeAssistant.call_services(domain, "toggle", data=self.target)
+        self._Client.call_services(domain, "toggle", data=self.target)
 
     @service(icon="switch", score=100)
     def turn_on(self, **service_data) -> any:
@@ -206,7 +206,7 @@ class Entity(BaseEntity):
         for arg in service_data:
             service_data[arg] = service_data[arg]
         service_data["entity_id"] = self.entity_id
-        self._HomeAssistant.call_services("homeassistant", "turn_on", data=service_data)
+        self._Client.call_services("Client", "turn_on", data=service_data)
 
     @service(icon="switch_off", score=100)
     def turn_off(self, **service_data) -> None:
@@ -214,13 +214,13 @@ class Entity(BaseEntity):
         for arg in service_data:
             service_data[arg] = service_data[arg]
         service_data["entity_id"] = self.entity_id
-        self._HomeAssistant.call_services("homeassistant", "turn_off", data=service_data)
+        self._Client.call_services("Client", "turn_off", data=service_data)
 
 class Light(Entity):
     """Representation of a Light entity."""
 
-    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
-        super().__init__(HomeAssistant, entity)
+    def __init__(self, Client: Client, entity: dict) -> None:
+        super().__init__(Client, entity)
         for color in COLORS:
             setattr(self, f"{color}", partial(self._set_color, color=color))
             getattr(self, f"{color}").name = color.title()
@@ -256,8 +256,8 @@ class Light(Entity):
 class Lock(BaseEntity):
     """Representation of a Lock entity."""
 
-    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
-        super().__init__(HomeAssistant, entity)
+    def __init__(self, Client: Client, entity: dict) -> None:
+        super().__init__(Client, entity)
 
     def _default_action(self):
         """Default action for entity."""
@@ -266,49 +266,49 @@ class Lock(BaseEntity):
     @service(icon="lock")
     def lock(self, **service_data) -> None:
         """Lock the entity."""
-        self._HomeAssistant.call_services("lock", "lock", data=self.target)
+        self._Client.call_services("lock", "lock", data=self.target)
 
     @service(icon="lock-open")
     def unlock(self, **service_data) -> None:
-        self._HomeAssistant.call_services("lock", "unlock", data=self.target)
+        self._Client.call_services("lock", "unlock", data=self.target)
 
     @service(icon="swap-horizontal-bold")
     def toggle(self) -> None:
         """Toggle the lock (Locked/Unlocked)."""
         # Generic toggle does not work for locks
-        lock_state = self._HomeAssistant.entity_state(self.entity_id)["state"]
+        lock_state = self._Client.entity_state(self.entity_id)["state"]
         data = {"entity_id": self.entity_id}
         if lock_state == "locked":
-            self._HomeAssistant.call_services("lock", "unlock", data)
+            self._Client.call_services("lock", "unlock", data)
         else:
-            self._HomeAssistant.call_services("lock", "lock", data)
+            self._Client.call_services("lock", "lock", data)
 
 class MediaPlayer(Entity):
     """Representation of a Media Player entity."""
 
-    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
-        super().__init__(HomeAssistant, entity)
+    def __init__(self, Client: Client, entity: dict) -> None:
+        super().__init__(Client, entity)
 
     @service(icon='play')
     def play(self) -> None:
         """Coninue Playing media."""
-        self._HomeAssistant.call_services("media_player", "media_play", self.target)
+        self._Client.call_services("media_player", "media_play", self.target)
 
     @service(icon='pause')
     def pause(self) -> None:
         """Pause currently playing media."""
-        self._HomeAssistant.call_services("media_player", "media_pause", data=self.target)
+        self._Client.call_services("media_player", "media_pause", data=self.target)
 
     @service(icon='play-pause')
     def play_pause(self) -> None:
         """Toggle Play/Pause."""
-        self._HomeAssistant.call_services("media_player", "media_play_pause", data=self.target)
+        self._Client.call_services("media_player", "media_play_pause", data=self.target)
 
 class Climate(Entity):
     """Representation of a Climate entity."""
 
-    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
-        super().__init__(HomeAssistant, entity)
+    def __init__(self, Client: Client, entity: dict) -> None:
+        super().__init__(Client, entity)
         self.hvac_modes = self._entity["attributes"].get("hvac_modes", [])
 
     def _default_action(self):
@@ -322,13 +322,13 @@ class Climate(Entity):
             mode_index = 0
         service_data = self.target
         service_data["hvac_mode"] = self.hvac_modes[mode_index]
-        self._HomeAssistant.call_services("climate", "set_hvac_mode", data=service_data)
+        self._Client.call_services("climate", "set_hvac_mode", data=service_data)
 
 class Script(Entity):
     """Representation of a Script entity."""
 
-    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
-        super().__init__(HomeAssistant, entity)
+    def __init__(self, Client: Client, entity: dict) -> None:
+        super().__init__(Client, entity)
         self.__doc__ = self.state
 
 
@@ -338,13 +338,13 @@ class Script(Entity):
     @service(icon="script-text-play")
     def run(self) -> None:
         """Run script."""
-        self._HomeAssistant.call_services("script", "turn_on", data=self.target)
+        self._Client.call_services("script", "turn_on", data=self.target)
 
 class Automation(Entity):
     """Representation of a Automation entity."""
 
-    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
-        super().__init__(HomeAssistant, entity)
+    def __init__(self, Client: Client, entity: dict) -> None:
+        super().__init__(Client, entity)
         self.__doc__ = self.state
 
     def _default_action(self):
@@ -353,4 +353,4 @@ class Automation(Entity):
     @service(icon="script-text-play")
     def run(self) -> None:
         """Run automation."""
-        self._HomeAssistant.call_services("automation", "turn_on", data=self.target)
+        self._Client.call_services("automation", "turn_on", data=self.target)

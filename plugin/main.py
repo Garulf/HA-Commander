@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 from flox import Flox, Clipboard
-from client import HomeAssistant
+from client import Client
 from requests.exceptions import ReadTimeout, ConnectionError, HTTPError
 
 PLUGIN_JSON = "./plugin.json"
@@ -20,7 +20,7 @@ def match(query, entity, friendly_name):
 class Commander(Flox, Clipboard):
 
     def init_hass(self):
-        self.hass = HomeAssistant(
+        self.client = Client(
             self.settings.get('url'), self.settings.get('token'), self.settings.get('verify_ssl')
         )
 
@@ -34,11 +34,11 @@ class Commander(Flox, Clipboard):
             )
             return
         else:
-            states = self.hass.states()
+            states = self.client.states()
             q = query.lower().replace(" ", "_")
             # Filter domains
             if query.startswith("#"):
-                for domain in self.hass.get_domains(states):
+                for domain in self.client.get_domains(states):
                     if match(q.replace("#", ""), "", domain):
                         self.add_item(
                             title=domain,
@@ -47,7 +47,7 @@ class Commander(Flox, Clipboard):
                             method=self.change_query,
                             parameters=[f'{self.user_keyword} {domain}.'],
                             dont_hide=True,
-                            glyph=self.hass.grab_icon(domain),
+                            glyph=self.client.grab_icon(domain),
                             font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop'))
                         )
                 return
@@ -55,7 +55,7 @@ class Commander(Flox, Clipboard):
             for entity in states:
                 if match(q, entity.entity_id, entity.friendly_name) and entity.entity_id not in self.settings.get('hidden_entities', []):
                     subtitle = f"[{entity.domain}] {entity.state}"
-                    if q.split("_")[-1].isdigit() and self.hass.domain(entity.entity_id, "light"):
+                    if q.split("_")[-1].isdigit() and self.client.domain(entity.entity_id, "light"):
                         subtitle = f"{subtitle} - Press ENTER to change brightness to: {q.split('_')[-1]}%"
                     self.add_item(
                         title=f"{entity.friendly_name or entity.entity_id}",
@@ -78,7 +78,7 @@ class Commander(Flox, Clipboard):
             
     def context_menu(self, data):
         self.init_hass()
-        entity = self.hass.create_entity(data[0])
+        entity = self.client.create_entity(data[0])
         for attr in dir(entity):
             if not attr.startswith("_"):
                 if callable(getattr(entity, attr)):
@@ -87,7 +87,7 @@ class Commander(Flox, Clipboard):
                         subtitle=getattr(entity, attr).__doc__,
                         method=self.action,
                         parameters=[data[0], "", attr],
-                        glyph=self.hass.grab_icon(getattr(getattr(entity, attr), "icon", "image_broken")),
+                        glyph=self.client.grab_icon(getattr(getattr(entity, attr), "icon", "image_broken")),
                         font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop'))
                     )
                     if getattr(getattr(entity, attr), "_service", False):
@@ -96,7 +96,7 @@ class Commander(Flox, Clipboard):
                     self.add_item(
                         title=str(getattr(entity, attr)),
                         subtitle=str(attr.replace("_", " ").title()),
-                        glyph=self.hass.grab_icon("information"),
+                        glyph=self.client.grab_icon("information"),
                         font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop')),
                         method=self.put,
                         parameters=[str(getattr(entity, attr))]
@@ -112,9 +112,9 @@ class Commander(Flox, Clipboard):
 
     def action(self, entity_id, query="", service="_default_action"):
         self.init_hass()
-        entity = self.hass.create_entity(entity_id)
+        entity = self.client.create_entity(entity_id)
         try:
-            if self.hass.domain(entity.entity_id, "light") and query.split("_")[-1].isdigit():
+            if self.client.domain(entity.entity_id, "light") and query.split("_")[-1].isdigit():
                 entity._brightness_pct(int(query.split("_")[-1]))
             else:
                 getattr(entity, service)()
