@@ -125,6 +125,10 @@ class Client(Base):
         endpoint = "error_log"
         return self.request("GET", endpoint).text.splitlines()
 
+    def camera_proxy(self, entity_id):
+        endpoint = "camera_proxy"
+        return self.request("GET", endpoint, {"entity_id": entity_id}).content
+
     def create_entity(self, entity):
         _domain = entity['entity_id'].split(".")[0]
         _cls = globals().get(_domain.replace("_", " ").title().replace(" ", ""), Entity)
