@@ -11,17 +11,24 @@ from requests.exceptions import ReadTimeout, ConnectionError, HTTPError
 PLUGIN_JSON = "./plugin.json"
 MAX_ITEMS = 100
 
+
 def match(query, entity, friendly_name):
     fq = query.rstrip("_" + string.digits)
-    if fq in entity.lower() or fq in friendly_name.lower().replace(" ", "_") or fq in entity.lower().replace(" ", ""):
+    if (
+        fq in entity.lower()
+        or fq in friendly_name.lower().replace(" ", "_")
+        or fq in entity.lower().replace(" ", "")
+    ):
         return True
     return False
 
-class Commander(Flox, Clipboard):
 
+class Commander(Flox, Clipboard):
     def init_hass(self):
         self.client = Client(
-            self.settings.get('url'), self.settings.get('token'), self.settings.get('verify_ssl')
+            self.settings.get("url"),
+            self.settings.get("token"),
+            self.settings.get("verify_ssl"),
         )
 
     def query(self, query):
@@ -45,10 +52,14 @@ class Commander(Flox, Clipboard):
                             subtitle="Search for entities in this domain",
                             # icon=self.get_icon(domain),
                             method=self.change_query,
-                            parameters=[f'{self.user_keyword} {domain}.'],
+                            parameters=[f"{self.user_keyword} {domain}."],
                             dont_hide=True,
                             glyph=self.client.grab_icon(domain),
-                            font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop'))
+                            font_family=str(
+                                Path(self.plugindir).joinpath(
+                                    "#Material Design Icons Desktop"
+                                )
+                            ),
                         )
                 return
             # logbook
@@ -60,28 +71,33 @@ class Commander(Flox, Clipboard):
                         method=self.change_query,
                         parameters=[f'{self.user_keyword} {entry.get("entity_id")}'],
                         glyph=self.client.grab_icon("history"),
-                        font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop')),
-                        dont_hide=True
+                        font_family=str(
+                            Path(self.plugindir).joinpath(
+                                "#Material Design Icons Desktop"
+                            )
+                        ),
+                        dont_hide=True,
                     )
                 return
             # error log
             if query.startswith("!"):
                 for entry in self.client.error_log():
                     split_error = entry.split(" ")
-                    title = ' '.join(split_error[0:2])
-                    subtitle = ' '.join(split_error[2:])
-                    self.add_item(
-                        title=title,
-                        subtitle=subtitle
-                    )
+                    title = " ".join(split_error[0:2])
+                    subtitle = " ".join(split_error[2:])
+                    self.add_item(title=title, subtitle=subtitle)
                     if len(self._results) >= MAX_ITEMS:
                         return
                 return
             # Main results
             for entity in states:
-                if match(q, entity.entity_id, entity.friendly_name) and entity.entity_id not in self.settings.get('hidden_entities', []):
+                if match(
+                    q, entity.entity_id, entity.friendly_name
+                ) and entity.entity_id not in self.settings.get("hidden_entities", []):
                     subtitle = f"[{entity.domain}] {entity.state}"
-                    if q.split("_")[-1].isdigit() and self.client.domain(entity.entity_id, "light"):
+                    if q.split("_")[-1].isdigit() and self.client.domain(
+                        entity.entity_id, "light"
+                    ):
                         subtitle = f"{subtitle} - Press ENTER to change brightness to: {q.split('_')[-1]}%"
                     self.add_item(
                         title=f"{entity.friendly_name or entity.entity_id}",
@@ -91,7 +107,11 @@ class Commander(Flox, Clipboard):
                         method="action",
                         parameters=[entity._entity, q],
                         glyph=entity._icon(),
-                        font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop'))
+                        font_family=str(
+                            Path(self.plugindir).joinpath(
+                                "#Material Design Icons Desktop"
+                            )
+                        ),
                     )
 
                 if len(self._results) > MAX_ITEMS:
@@ -99,7 +119,7 @@ class Commander(Flox, Clipboard):
 
             if len(self._results) == 0:
                 self.add_item(title="No Results Found!")
- 
+
     def context_menu(self, data):
         self.init_hass()
         entity = self.client.create_entity(data[0])
@@ -111,8 +131,14 @@ class Commander(Flox, Clipboard):
                         subtitle=getattr(entity, attr).__doc__,
                         method=self.action,
                         parameters=[data[0], "", attr],
-                        glyph=self.client.grab_icon(getattr(getattr(entity, attr), "icon", "image_broken")),
-                        font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop'))
+                        glyph=self.client.grab_icon(
+                            getattr(getattr(entity, attr), "icon", "image_broken")
+                        ),
+                        font_family=str(
+                            Path(self.plugindir).joinpath(
+                                "#Material Design Icons Desktop"
+                            )
+                        ),
                     )
                     if getattr(getattr(entity, attr), "_service", False):
                         self._results.insert(0, self._results.pop(-1))
@@ -121,9 +147,13 @@ class Commander(Flox, Clipboard):
                         title=str(getattr(entity, attr)),
                         subtitle=str(attr.replace("_", " ").title()),
                         glyph=self.client.grab_icon("information"),
-                        font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop')),
+                        font_family=str(
+                            Path(self.plugindir).joinpath(
+                                "#Material Design Icons Desktop"
+                            )
+                        ),
                         method=self.put,
-                        parameters=[str(getattr(entity, attr))]
+                        parameters=[str(getattr(entity, attr))],
                     )
         self.add_item(
             title="Hide Entity",
@@ -137,7 +167,10 @@ class Commander(Flox, Clipboard):
         self.init_hass()
         entity = self.client.create_entity(entity_id)
         try:
-            if self.client.domain(entity.entity_id, "light") and query.split("_")[-1].isdigit():
+            if (
+                self.client.domain(entity.entity_id, "light")
+                and query.split("_")[-1].isdigit()
+            ):
                 entity._brightness_pct(int(query.split("_")[-1]))
             else:
                 getattr(entity, service)()
@@ -145,11 +178,13 @@ class Commander(Flox, Clipboard):
             sys.exit(1)
 
     def hide_entity(self, entity_id):
-        hidden_entities = self.settings.setdefault('hidden_entities', [])
+        hidden_entities = self.settings.setdefault("hidden_entities", [])
         hidden_entities.append(entity_id)
-        self.settings.update({'hidden_entities': hidden_entities})
-        self.show_msg("Entity hidden", f"{entity_id} will no longer be shown in the results.")
-        
+        self.settings.update({"hidden_entities": hidden_entities})
+        self.show_msg(
+            "Entity hidden", f"{entity_id} will no longer be shown in the results."
+        )
+
 
 if __name__ == "__main__":
     Commander()

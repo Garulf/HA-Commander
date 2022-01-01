@@ -18,6 +18,7 @@ with open(COLORS_FILE, "r") as _f:
 def format_name(name):
     return name.replace("_", " ").title()
 
+
 def service(icon=None, score=0):
     def decorator(func):
         @wraps(func)
@@ -32,6 +33,7 @@ def service(icon=None, score=0):
 
     return decorator
 
+
 def action():
     def decorator(func):
         @wraps(func)
@@ -43,15 +45,20 @@ def action():
 
     return decorator
 
-class Base(object):
 
+class Base(object):
     def __init__(self, url, token, verify_ssl):
         self._url = f"{url}"
         self._headers = {
             "Authorization": f"Bearer {token}",
             "content-type": "application/json",
         }
-        self._cacert = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), "lib", "certifi", "cacert.pem")
+        self._cacert = os.path.join(
+            os.path.abspath(os.path.dirname(os.path.dirname(__file__))),
+            "lib",
+            "certifi",
+            "cacert.pem",
+        )
         self._verify_ssl = verify_ssl
         if self._verify_ssl:
             self._verify_ssl = self._cacert
@@ -73,10 +80,10 @@ class Base(object):
         return response
 
     def grab_icon(self, domain, state="on"):
-        if state == 'unavailable':
-            icon = DEFAULT_ICONS['unavailable']
+        if state == "unavailable":
+            icon = DEFAULT_ICONS["unavailable"]
         elif domain is None:
-            icon = DEFAULT_ICONS['broken_image']
+            icon = DEFAULT_ICONS["broken_image"]
         if not domain in DEFAULT_ICONS.keys():
             return self.lookup_icon(domain)
         else:
@@ -87,14 +94,14 @@ class Base(object):
         return None
 
     def lookup_icon(self, name):
-        with open(META_FILE, 'r') as f:
+        with open(META_FILE, "r") as f:
             for _icon in json.load(f):
-                if name == _icon['name']:
-                    return chr(int(_icon['codepoint'], 16))
+                if name == _icon["name"]:
+                    return chr(int(_icon["codepoint"], 16))
         return None
 
-class Client(Base):
 
+class Client(Base):
     def __init__(self, url, token, verify_ssl=True):
         super().__init__(url, token, verify_ssl)
         self.api()
@@ -112,9 +119,7 @@ class Client(Base):
     def get_domains(self, entities):
         domains = []
         for entity in entities:
-            domains.append(
-                entity.domain.lower()
-            )
+            domains.append(entity.domain.lower())
         return sorted(list(set(domains)))
 
     def logbook(self, date=None):
@@ -130,7 +135,7 @@ class Client(Base):
         return self.request("GET", endpoint, {"entity_id": entity_id}).content
 
     def create_entity(self, entity):
-        _domain = entity['entity_id'].split(".")[0]
+        _domain = entity["entity_id"].split(".")[0]
         _cls = globals().get(_domain.replace("_", " ").title().replace(" ", ""), Entity)
         if type(_cls) == type(Entity):
             return _cls(self, entity)
@@ -168,14 +173,13 @@ class BaseEntity(object):
         self._entity = entity
         self.entity_id = entity.get("entity_id")
         self.domain = self.entity_id.split(".")[0]
-        self.name = entity.get('name')
-        self.friendly_name = entity.get('attributes', "").get('friendly_name', "")
-        self.state = entity.get('state')
-        self.attributes = entity['attributes']
+        self.name = entity.get("name")
+        self.friendly_name = entity.get("attributes", "").get("friendly_name", "")
+        self.state = entity.get("state")
+        self.attributes = entity["attributes"]
         self.target = {"entity_id": self.entity_id}
         # for attribute in entity['attributes']:
         #     setattr(self, attribute, entity['attributes'][attribute])
-
 
     def _as_dict(self) -> dict:
         """Return dictionary representation of entity."""
@@ -183,20 +187,21 @@ class BaseEntity(object):
 
     def _icon(self):
         icon = self._client.grab_icon(self.domain, self.state)
-        if not icon and self.attributes.get('icon'):
-            with open(META_FILE, 'r') as f:
+        if not icon and self.attributes.get("icon"):
+            with open(META_FILE, "r") as f:
                 for _icon in json.load(f):
-                    if self.attributes['icon'] == _icon['name']:
-                        icon = chr(int(self.attributes['icon'], 16))
+                    if self.attributes["icon"] == _icon["name"]:
+                        icon = chr(int(self.attributes["icon"], 16))
                         break
         return icon
 
     def _update(self):
         self.__init__(self._client, self._client.entity_state(self.entity_id))
 
+
 class Entity(BaseEntity):
     """Representation of a generic entity."""
-    
+
     def __init__(self, client, entity):
         super().__init__(client, entity)
 
@@ -227,6 +232,7 @@ class Entity(BaseEntity):
             service_data[arg] = service_data[arg]
         service_data["entity_id"] = self.entity_id
         self._client.call_services("homeassistant", "turn_off", data=service_data)
+
 
 class Light(Entity):
     """Representation of a Light entity."""
@@ -265,6 +271,7 @@ class Light(Entity):
         """Change light effect."""
         self.turn_on(effect=effect)
 
+
 class Lock(BaseEntity):
     """Representation of a Lock entity."""
 
@@ -295,26 +302,28 @@ class Lock(BaseEntity):
         else:
             self._client.call_services("lock", "lock", data)
 
+
 class MediaPlayer(Entity):
     """Representation of a Media Player entity."""
 
     def __init__(self, client: Client, entity: dict) -> None:
         super().__init__(client, entity)
 
-    @service(icon='play')
+    @service(icon="play")
     def play(self) -> None:
         """Coninue Playing media."""
         self._client.call_services("media_player", "media_play", self.target)
 
-    @service(icon='pause')
+    @service(icon="pause")
     def pause(self) -> None:
         """Pause currently playing media."""
         self._client.call_services("media_player", "media_pause", data=self.target)
 
-    @service(icon='play-pause')
+    @service(icon="play-pause")
     def play_pause(self) -> None:
         """Toggle Play/Pause."""
         self._client.call_services("media_player", "media_play_pause", data=self.target)
+
 
 class Climate(Entity):
     """Representation of a Climate entity."""
@@ -336,6 +345,7 @@ class Climate(Entity):
         service_data["hvac_mode"] = self.hvac_modes[mode_index]
         self._client.call_services("climate", "set_hvac_mode", data=service_data)
 
+
 class Script(Entity):
     """Representation of a Script entity."""
 
@@ -349,6 +359,7 @@ class Script(Entity):
     def run(self) -> None:
         """Run script."""
         self._client.call_services("script", "turn_on", data=self.target)
+
 
 class Automation(Entity):
     """Representation of a Automation entity."""
@@ -364,6 +375,7 @@ class Automation(Entity):
     def run(self) -> None:
         """Run automation."""
         self._client.call_services("automation", "turn_on", data=self.target)
+
 
 class Camera(BaseEntity):
     """Representation of a Camera entity."""
@@ -384,6 +396,7 @@ class Camera(BaseEntity):
         """View a still from this Camera entity."""
         webbrowser.open(f'{self._client._url}{self.attributes["entity_picture"]}')
 
+
 class InputSelect(BaseEntity):
     """Representation of a Input_select entity."""
 
@@ -393,18 +406,18 @@ class InputSelect(BaseEntity):
             setattr(self, option, partial(self._select, option))
             getattr(self, option).name = option
             getattr(self, option).__doc__ = 'Set option to "{}"'.format(option)
-            getattr(self, option).icon = 'radiobox-blank'
+            getattr(self, option).icon = "radiobox-blank"
             if option == self.state:
-                getattr(self, option).icon = 'radiobox-marked'
-                getattr(self, option).__doc__ = 'Currently selected option.'
-            
+                getattr(self, option).icon = "radiobox-marked"
+                getattr(self, option).__doc__ = "Currently selected option."
 
     @service(icon="arrow-right")
     def _select(self, option) -> None:
         """Select option."""
         data = self.target
-        data['option'] = option
+        data["option"] = option
         self._client.call_services("input_select", "select_option", data=data)
+
 
 class Select(BaseEntity):
     def __init__(self, client: Client, entity: dict) -> None:
@@ -413,24 +426,25 @@ class Select(BaseEntity):
             setattr(self, option, partial(self._select, option))
             getattr(self, option).name = option
             getattr(self, option).__doc__ = 'Set option to "{}"'.format(option)
-            getattr(self, option).icon = 'radiobox-blank'
+            getattr(self, option).icon = "radiobox-blank"
             if option == self.state:
-                getattr(self, option).icon = 'radiobox-marked'
-                getattr(self, option).__doc__ = 'Currently selected option.'
+                getattr(self, option).icon = "radiobox-marked"
+                getattr(self, option).__doc__ = "Currently selected option."
 
     @service(icon="arrow-right")
     def _select(self, option) -> None:
         """Select option."""
         data = self.target
-        data['option'] = option
+        data["option"] = option
         self._client.call_services("input_select", "select_option", data=data)
+
 
 class Group(Entity):
     def __init__(self, client: Client, entity: dict) -> None:
         super().__init__(client, entity)
-        for entity in self.attributes.get('entity_id', []):
+        for entity in self.attributes.get("entity_id", []):
             setattr(self, entity, partial(self.toggle, entity))
             getattr(self, entity).name = entity
             getattr(self, entity).__doc__ = 'Toggle entity "{}"'.format(entity)
-            getattr(self, entity).icon = 'checkbox-multiple-blank'
+            getattr(self, entity).icon = "checkbox-multiple-blank"
             getattr(self, entity)._service = True
