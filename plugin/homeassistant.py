@@ -383,3 +383,54 @@ class Camera(BaseEntity):
     def view(self) -> None:
         """View a still from this Camera entity."""
         webbrowser.open(f'{self._client._url}{self.attributes["entity_picture"]}')
+
+class InputSelect(BaseEntity):
+    """Representation of a Input_select entity."""
+
+    def __init__(self, client: Client, entity: dict) -> None:
+        super().__init__(client, entity)
+        for option in self.attributes["options"]:
+            setattr(self, option, partial(self._select, option))
+            getattr(self, option).name = option
+            getattr(self, option).__doc__ = 'Set option to "{}"'.format(option)
+            getattr(self, option).icon = 'radiobox-blank'
+            if option == self.state:
+                getattr(self, option).icon = 'radiobox-marked'
+                getattr(self, option).__doc__ = 'Currently selected option.'
+            
+
+    @service(icon="arrow-right")
+    def _select(self, option) -> None:
+        """Select option."""
+        data = self.target
+        data['option'] = option
+        self._client.call_services("input_select", "select_option", data=data)
+
+class Select(BaseEntity):
+    def __init__(self, client: Client, entity: dict) -> None:
+        super().__init__(client, entity)
+        for option in self.attributes["options"]:
+            setattr(self, option, partial(self._select, option))
+            getattr(self, option).name = option
+            getattr(self, option).__doc__ = 'Set option to "{}"'.format(option)
+            getattr(self, option).icon = 'radiobox-blank'
+            if option == self.state:
+                getattr(self, option).icon = 'radiobox-marked'
+                getattr(self, option).__doc__ = 'Currently selected option.'
+
+    @service(icon="arrow-right")
+    def _select(self, option) -> None:
+        """Select option."""
+        data = self.target
+        data['option'] = option
+        self._client.call_services("input_select", "select_option", data=data)
+
+class Group(Entity):
+    def __init__(self, client: Client, entity: dict) -> None:
+        super().__init__(client, entity)
+        for entity in self.attributes.get('entity_id', []):
+            setattr(self, entity, partial(self.toggle, entity))
+            getattr(self, entity).name = entity
+            getattr(self, entity).__doc__ = 'Toggle entity "{}"'.format(entity)
+            getattr(self, entity).icon = 'checkbox-multiple-blank'
+            getattr(self, entity)._service = True
