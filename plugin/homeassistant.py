@@ -121,6 +121,10 @@ class Client(Base):
         endpoint = "logbook"
         return self.request("GET", endpoint).json()
 
+    def error_log(self):
+        endpoint = "error_log"
+        return self.request("GET", endpoint).text.splitlines()
+
     def create_entity(self, entity):
         _domain = entity['entity_id'].split(".")[0]
         _cls = globals().get(_domain.replace("_", " ").title().replace(" ", ""), Entity)

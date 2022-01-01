@@ -64,6 +64,19 @@ class Commander(Flox, Clipboard):
                         dont_hide=True
                     )
                 return
+            # error log
+            if query.startswith("!"):
+                for entry in self.client.error_log():
+                    split_error = entry.split(" ")
+                    title = ' '.join(split_error[0:2])
+                    subtitle = ' '.join(split_error[2:])
+                    self.add_item(
+                        title=title,
+                        subtitle=subtitle
+                    )
+                    if len(self._results) >= MAX_ITEMS:
+                        return
+                return
             # Main results
             for entity in states:
                 if match(q, entity.entity_id, entity.friendly_name) and entity.entity_id not in self.settings.get('hidden_entities', []):
