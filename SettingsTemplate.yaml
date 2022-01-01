@@ -26,7 +26,7 @@ body:
     attributes:
       name: max_results
       label: 'Max results:'
-      defaultValue: 25
+      defaultValue: 50
       options:
         - 5
         - 10
@@ -34,3 +34,11 @@ body:
         - 20
         - 25
         - 30
+        - 35
+        - 40
+        - 50
+        - 60
+        - 70
+        - 80
+        - 90
+        - 100

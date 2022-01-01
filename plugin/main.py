@@ -1,110 +1,132 @@
 # -*- coding: utf-8 -*-
+import sys
 import string
-import os.path
-import json
+from pathlib import Path
 
 
-from flox import Flox
-from hass import HomeAssistant
+from flox import Flox, Clipboard
+from client import HomeAssistant
+from requests.exceptions import ReadTimeout, ConnectionError, HTTPError
 
 PLUGIN_JSON = "./plugin.json"
-SETTINGS = "../../Settings/Settings.json"
-CONFIG_FILE = "./plugin/config.ini"
-DEV_CONFIG = "./plugin/.dev-config.ini"
-ICONS_FOLDER = "./icons/icons_white/"
-COLORS_FILE = "./plugin/colors.json"
-MAX_ITEMS = 30
-
-with open(COLORS_FILE, "r") as _f:
-    COLORS = json.load(_f)
-
+MAX_ITEMS = 100
 
 def match(query, entity, friendly_name):
     fq = query.rstrip("_" + string.digits)
-    if fq in entity.lower().replace(".", "_") or fq in friendly_name.lower().replace(" ", "_"):
+    if fq in entity.lower() or fq in friendly_name.lower().replace(" ", "_") or fq in entity.lower().replace(" ", ""):
         return True
     return False
 
-class Commander(Flox):
+class Commander(Flox, Clipboard):
 
     def init_hass(self):
         self.hass = HomeAssistant(
             self.settings.get('url'), self.settings.get('token'), self.settings.get('verify_ssl')
         )
 
-    def get_icon(self, domain, state=None):
-        if state == "unavailable":
-            return os.path.join(ICONS_FOLDER, "alert.png")
-        domain_state_icon = os.path.join(ICONS_FOLDER, f"{domain}_{state}.png")
-        domain_icon = os.path.join(ICONS_FOLDER, f"{domain}.png")
-        if os.path.exists(domain_state_icon):
-            return domain_state_icon
-        elif os.path.exists(domain_icon):
-            return domain_icon
-        return self.icon
-
     def query(self, query):
-        self.init_hass()
-        q = query.lower().replace(" ", "_")
-        states = self.hass.states()
-        for entity in states:
-            if match(q, entity.entity_id, entity.friendly_name):
-                subtitle = f"[{entity.domain}] {entity.state}"
-                if q.split("_")[-1].isdigit() and self.hass.domain(entity.entity_id, "light"):
-                    subtitle = f"{subtitle} - Press ENTER to change brightness to: {q.split('_')[-1]}%"
-                self.add_item(
-                    title=f"{entity.friendly_name or entity.entity_id}",
-                    subtitle=subtitle,
-                    icon=self.get_icon(entity.domain, entity.state),
-                    context=[entity._entity],
-                    method="action",
-                    parameters=[entity._entity, q],
-                )
-            if len(self._results) > MAX_ITEMS:
-                break
+        try:
+            self.init_hass()
+        except (ReadTimeout, ConnectionError, HTTPError):
+            self.add_item(
+                title=f"Could not connect to Home Assistant!",
+                subtitle="Please check your settings or network and try again.",
+            )
+            return
+        else:
+            states = self.hass.states()
+            q = query.lower().replace(" ", "_")
+            # Filter domains
+            if query.startswith("#"):
+                for domain in self.hass.get_domains(states):
+                    if match(q.replace("#", ""), "", domain):
+                        self.add_item(
+                            title=domain,
+                            subtitle="Search for entities in this domain",
+                            # icon=self.get_icon(domain),
+                            method=self.change_query,
+                            parameters=[f'{self.user_keyword} {domain}.'],
+                            dont_hide=True,
+                            glyph=self.hass.grab_icon(domain),
+                            font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop'))
+                        )
+                return
+            # Main results
+            for entity in states:
+                if match(q, entity.entity_id, entity.friendly_name) and entity.entity_id not in self.settings.get('hidden_entities', []):
+                    subtitle = f"[{entity.domain}] {entity.state}"
+                    if q.split("_")[-1].isdigit() and self.hass.domain(entity.entity_id, "light"):
+                        subtitle = f"{subtitle} - Press ENTER to change brightness to: {q.split('_')[-1]}%"
+                    self.add_item(
+                        title=f"{entity.friendly_name or entity.entity_id}",
+                        subtitle=subtitle.replace("_", " ").title(),
+                        # icon=self.get_icon(entity.domain, entity.state),
+                        context=[entity._entity],
+                        method="action",
+                        parameters=[entity._entity, q],
+                        glyph=entity._icon(),
+                        font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop'))
+                    )
 
-        if len(self._results) == 0:
-            self.add_item(title="No Results Found!")
+                if len(self._results) > MAX_ITEMS:
+                    break
+
+            if len(self._results) == 0:
+                self.add_item(title="No Results Found!")
+ 
+
             
     def context_menu(self, data):
         self.init_hass()
         entity = self.hass.create_entity(data[0])
-        if self.hass.domain(entity.entity_id, "light"):
-            for color in COLORS:
-                self.add_item(
-                    title=color.title(),
-                    subtitle="Press ENTER to change to this color",
-                    icon=self.get_icon("palette"),
-                    method=self.change_color,
-                    parameters=[entity._entity, color],
-                )
-            for effect in entity.attributes["effect_list"]:
-                self.add_item(
-                    title=effect,
-                    icon=self.get_icon("playlist-play"),
-                    method=self.effect,
-                    parameters=[entity._entity, effect],
-                )
-        return self._results
+        for attr in dir(entity):
+            if not attr.startswith("_"):
+                if callable(getattr(entity, attr)):
+                    self.add_item(
+                        title=getattr(getattr(entity, attr), "name", ""),
+                        subtitle=getattr(entity, attr).__doc__,
+                        method=self.action,
+                        parameters=[data[0], "", attr],
+                        glyph=self.hass.grab_icon(getattr(getattr(entity, attr), "icon", "image_broken")),
+                        font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop'))
+                    )
+                    if getattr(getattr(entity, attr), "_service", False):
+                        self._results.insert(0, self._results.pop(-1))
+                elif not str(getattr(entity, attr)).startswith("{"):
+                    self.add_item(
+                        title=str(getattr(entity, attr)),
+                        subtitle=str(attr.replace("_", " ").title()),
+                        glyph=self.hass.grab_icon("information"),
+                        font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop')),
+                        method=self.put,
+                        parameters=[str(getattr(entity, attr))]
+                    )
+        self.add_item(
+            title="Hide Entity",
+            subtitle="Hide this entity from the results",
+            icon=self.icon,
+            method=self.hide_entity,
+            parameters=[entity.entity_id],
+        )
 
-    def action(self, entity_id, q):
+
+    def action(self, entity_id, query="", service="_default_action"):
         self.init_hass()
         entity = self.hass.create_entity(entity_id)
-        if self.hass.domain(entity.entity_id, "light") and q.split("_")[-1].isdigit():
-            entity.brightness = int(q.split("_")[-1])
-        else:
-            entity.default_action()
+        try:
+            if self.hass.domain(entity.entity_id, "light") and query.split("_")[-1].isdigit():
+                entity._brightness_pct(int(query.split("_")[-1]))
+            else:
+                getattr(entity, service)()
+        except (HTTPError, ReadTimeout, ConnectionError):
+            sys.exit(1)
 
-    def change_color(self, entity, color):
-        self.init_hass()
-        entity = self.hass.create_entity(entity)
-        entity.color(color)
-
-    def effect(self, entity, effect):
-        self.init_hass()
-        entity = self.hass.create_entity(entity)
-        entity.effect(effect)
-
+    def hide_entity(self, entity_id):
+        hidden_entities = self.settings.setdefault('hidden_entities', [])
+        hidden_entities.append(entity_id)
+        self.settings.update({'hidden_entities': hidden_entities})
+        self.show_msg("Entity hidden", f"{entity_id} will no longer be shown in the results.")
+        
 
 if __name__ == "__main__":
     Commander()

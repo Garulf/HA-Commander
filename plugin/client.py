@@ -1,0 +1,356 @@
+import os
+import json
+from functools import partial, wraps
+
+import requests
+from requests.exceptions import ConnectionError, HTTPError
+
+from icons import DEFAULT_ICONS
+
+COLORS_FILE = "./plugin/colors.json"
+META_FILE = "./meta.json"
+
+with open(COLORS_FILE, "r") as _f:
+    COLORS = json.load(_f)
+
+
+def format_name(name):
+    return name.replace("_", " ").title()
+
+def service(icon=None, score=0):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            return func(self, *args, **kwargs)
+
+        wrapper.icon = getattr(func, "icon", icon or func.__name__)
+        wrapper.score = getattr(func, "score", score)
+        wrapper._service = True
+        wrapper.name = format_name(func.__name__)
+        return wrapper
+
+    return decorator
+
+def action():
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            return func(self, *args, **kwargs)
+
+        wrapper._action = True
+        return wrapper
+
+    return decorator
+
+class Base(object):
+
+    def __init__(self, url, token, verify_ssl):
+        self._url = f"{url}"
+        self._headers = {
+            "Authorization": f"Bearer {token}",
+            "content-type": "application/json",
+        }
+        self._cacert = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), "lib", "certifi", "cacert.pem")
+        self._verify_ssl = verify_ssl
+        if self._verify_ssl:
+            self._verify_ssl = self._cacert
+        self._session = requests.Session()
+
+    def request(self, method, endpoint, data=None):
+        url = f"{self._url}/api/{endpoint}"
+        if data:
+            data = json.dumps(data)
+        response = self._session.request(
+            method,
+            url,
+            headers=self._headers,
+            data=data,
+            verify=self._verify_ssl,
+            timeout=20,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def grab_icon(self, domain, state="on"):
+        if state == 'unavailable':
+            icon = DEFAULT_ICONS['unavailable']
+        elif domain is None:
+            icon = DEFAULT_ICONS['broken_image']
+        if not domain in DEFAULT_ICONS.keys():
+            return self.lookup_icon(domain)
+        else:
+            icon_name = f"{domain}_{state}".lower()
+            icon = DEFAULT_ICONS.get(icon_name) or DEFAULT_ICONS.get(domain)
+        if icon:
+            return chr(int(icon, 16))
+        return None
+
+    def lookup_icon(self, name):
+        with open(META_FILE, 'r') as f:
+            for _icon in json.load(f):
+                if name == _icon['name']:
+                    return chr(int(_icon['codepoint'], 16))
+        return None
+
+class HomeAssistant(Base):
+
+    def __init__(self, url, token, verify_ssl=True):
+        super().__init__(url, token, verify_ssl)
+        self.api()
+
+    def api(self):
+        return self.request("GET", "")
+
+    def states(self):
+        entities = []
+        _states = self.request("GET", "states")
+        for entity in _states:
+            entities.append(self.create_entity(entity))
+        return entities
+
+    def get_domains(self, entities):
+        domains = []
+        for entity in entities:
+            domains.append(
+                entity.domain.lower()
+            )
+        return sorted(list(set(domains)))
+
+            
+    def create_entity(self, entity):
+        _domain = entity['entity_id'].split(".")[0]
+        _cls = globals().get(_domain.replace("_", " ").title().replace(" ", ""), Entity)
+        if type(_cls) == type(Entity):
+            return _cls(self, entity)
+
+    def entity_state(self, entity_id):
+        endpoint = f"states/{entity_id}"
+        return self.request("GET", endpoint)
+
+    def call_services(self, domain, service, data):
+        endpoint = f"services/{domain}/{service}"
+        return self.request("POST", endpoint, data)
+
+    @staticmethod
+    def domain(entity_id, domain=None):
+        _entity_domain = entity_id.split(".")[0]
+        if not domain:
+            return _entity_domain
+        if _entity_domain == domain:
+            return True
+        else:
+            return False
+
+    def turn_on(self, entity_id, color_name=None, effect=None, **service_data):
+        service_data["entity_id"] = entity_id
+        if color_name:
+            service_data["color_name"] = color_name
+        if effect:
+            service_data["effect"] = effect
+        self.call_services("light", "turn_on", service_data)
+
+
+class BaseEntity(object):
+    def __init__(self, HomeAssistant, entity):
+        self._HomeAssistant = HomeAssistant
+        self._entity = entity
+        self.entity_id = entity.get("entity_id")
+        self.domain = self.entity_id.split(".")[0]
+        self.name = entity.get('name')
+        self.friendly_name = entity.get('attributes', "").get('friendly_name', "")
+        self.state = entity.get('state')
+        self.attributes = entity['attributes']
+        self.target = {"entity_id": self.entity_id}
+        # for attribute in entity['attributes']:
+        #     setattr(self, attribute, entity['attributes'][attribute])
+
+
+    def _as_dict(self) -> dict:
+        """Return dictionary representation of entity."""
+        return self._entity
+
+    def _icon(self):
+        icon = self._HomeAssistant.grab_icon(self.domain, self.state)
+        if not icon and self.attributes.get('icon'):
+            with open(META_FILE, 'r') as f:
+                for _icon in json.load(f):
+                    if self.attributes['icon'] == _icon['name']:
+                        icon = chr(int(self.attributes['icon'], 16))
+                        break
+        return icon
+
+    def _update(self):
+        self.__init__(self._HomeAssistant, self._HomeAssistant.entity_state(self.entity_id))
+
+class Entity(BaseEntity):
+    """Representation of a generic entity."""
+    
+    def __init__(self, HomeAssistant, entity):
+        super().__init__(HomeAssistant, entity)
+
+    def __call__(self):
+        self._default_action()
+
+    def _default_action(self):
+        """Default action for entity."""
+        self.toggle()
+
+    @service(icon="swap-horizontal-bold", score=150)
+    def toggle(self, domain="homeassistant") -> None:
+        """Toggle entity."""
+        self._HomeAssistant.call_services(domain, "toggle", data=self.target)
+
+    @service(icon="switch", score=100)
+    def turn_on(self, **service_data) -> any:
+        """Turn entity on."""
+        for arg in service_data:
+            service_data[arg] = service_data[arg]
+        service_data["entity_id"] = self.entity_id
+        self._HomeAssistant.call_services("homeassistant", "turn_on", data=service_data)
+
+    @service(icon="switch_off", score=100)
+    def turn_off(self, **service_data) -> None:
+        """Turn entity off."""
+        for arg in service_data:
+            service_data[arg] = service_data[arg]
+        service_data["entity_id"] = self.entity_id
+        self._HomeAssistant.call_services("homeassistant", "turn_off", data=service_data)
+
+class Light(Entity):
+    """Representation of a Light entity."""
+
+    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
+        super().__init__(HomeAssistant, entity)
+        for color in COLORS:
+            setattr(self, f"{color}", partial(self._set_color, color=color))
+            getattr(self, f"{color}").name = color.title()
+            getattr(self, f"{color}").__doc__ = f"Set light color to {color}."
+            getattr(self, f"{color}").icon = "palette"
+            getattr(self, f"{color}").score = 0
+        for effect in self.attributes.get("effect_list", []):
+            setattr(self, f"{effect}", partial(self.turn_on, effect=effect))
+            getattr(self, f"{effect}").name = effect.title()
+            getattr(self, f"{effect}").__doc__ = f"Set light effect to {effect}."
+            getattr(self, f"{effect}").icon = "star-circle-outline"
+            getattr(self, f"{effect}").score = 0
+            # print(getattr(self, f"{color}").__icon__)
+
+    def _set_color(self, color: str) -> None:
+        self.turn_on(**{"color_name": color})
+
+    def _set_effect(self, effect: str) -> None:
+        self.turn_on(**{"effect": effect})
+
+    def _brightness_pct(self, brightness_pct: int) -> None:
+        """Set brightness of light."""
+        self.turn_on(**{"brightness_pct": brightness_pct})
+
+    def _color(self, color_name: str) -> None:
+        """Return the color of the light."""
+        self.turn_on(color_name=color_name)
+
+    def _effect(self, effect: str) -> None:
+        """Change light effect."""
+        self.turn_on(effect=effect)
+
+class Lock(BaseEntity):
+    """Representation of a Lock entity."""
+
+    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
+        super().__init__(HomeAssistant, entity)
+
+    def _default_action(self):
+        """Default action for entity."""
+        self.toggle()
+
+    @service(icon="lock")
+    def lock(self, **service_data) -> None:
+        """Lock the entity."""
+        self._HomeAssistant.call_services("lock", "lock", data=self.target)
+
+    @service(icon="lock-open")
+    def unlock(self, **service_data) -> None:
+        self._HomeAssistant.call_services("lock", "unlock", data=self.target)
+
+    @service(icon="swap-horizontal-bold")
+    def toggle(self) -> None:
+        """Toggle the lock (Locked/Unlocked)."""
+        # Generic toggle does not work for locks
+        lock_state = self._HomeAssistant.entity_state(self.entity_id)["state"]
+        data = {"entity_id": self.entity_id}
+        if lock_state == "locked":
+            self._HomeAssistant.call_services("lock", "unlock", data)
+        else:
+            self._HomeAssistant.call_services("lock", "lock", data)
+
+class MediaPlayer(Entity):
+    """Representation of a Media Player entity."""
+
+    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
+        super().__init__(HomeAssistant, entity)
+
+    @service(icon='play')
+    def play(self) -> None:
+        """Coninue Playing media."""
+        self._HomeAssistant.call_services("media_player", "media_play", self.target)
+
+    @service(icon='pause')
+    def pause(self) -> None:
+        """Pause currently playing media."""
+        self._HomeAssistant.call_services("media_player", "media_pause", data=self.target)
+
+    @service(icon='play-pause')
+    def play_pause(self) -> None:
+        """Toggle Play/Pause."""
+        self._HomeAssistant.call_services("media_player", "media_play_pause", data=self.target)
+
+class Climate(Entity):
+    """Representation of a Climate entity."""
+
+    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
+        super().__init__(HomeAssistant, entity)
+        self.hvac_modes = self._entity["attributes"].get("hvac_modes", [])
+
+    def _default_action(self):
+        self.cycle_mode()
+
+    def cycle_mode(self) -> None:
+        """Cycle HVAC mode."""
+        self._update()
+        mode_index = self.hvac_modes.index(self.state) + 1
+        if mode_index == len(self.hvac_modes):
+            mode_index = 0
+        service_data = self.target
+        service_data["hvac_mode"] = self.hvac_modes[mode_index]
+        self._HomeAssistant.call_services("climate", "set_hvac_mode", data=service_data)
+
+class Script(Entity):
+    """Representation of a Script entity."""
+
+    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
+        super().__init__(HomeAssistant, entity)
+        self.__doc__ = self.state
+
+
+    def _default_action(self):
+        self.run()
+
+    @service(icon="script-text-play")
+    def run(self) -> None:
+        """Run script."""
+        self._HomeAssistant.call_services("script", "turn_on", data=self.target)
+
+class Automation(Entity):
+    """Representation of a Automation entity."""
+
+    def __init__(self, HomeAssistant: HomeAssistant, entity: dict) -> None:
+        super().__init__(HomeAssistant, entity)
+        self.__doc__ = self.state
+
+    def _default_action(self):
+        self.run()
+
+    @service(icon="script-text-play")
+    def run(self) -> None:
+        """Run automation."""
+        self._HomeAssistant.call_services("automation", "turn_on", data=self.target)
