@@ -117,7 +117,6 @@ class Client(Base):
             )
         return sorted(list(set(domains)))
 
-            
     def logbook(self, date=None):
         endpoint = "logbook"
         return self.request("GET", endpoint).json()
