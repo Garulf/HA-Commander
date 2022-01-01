@@ -69,7 +69,7 @@ class Base(object):
             timeout=20,
         )
         response.raise_for_status()
-        return response.json()
+        return response
 
     def grab_icon(self, domain, state="on"):
         if state == 'unavailable':
@@ -103,7 +103,7 @@ class Client(Base):
 
     def states(self):
         entities = []
-        _states = self.request("GET", "states")
+        _states = self.request("GET", "states").json()
         for entity in _states:
             entities.append(self.create_entity(entity))
         return entities
@@ -117,6 +117,10 @@ class Client(Base):
         return sorted(list(set(domains)))
 
             
+    def logbook(self, date=None):
+        endpoint = "logbook"
+        return self.request("GET", endpoint).json()
+
     def create_entity(self, entity):
         _domain = entity['entity_id'].split(".")[0]
         _cls = globals().get(_domain.replace("_", " ").title().replace(" ", ""), Entity)
@@ -125,11 +129,11 @@ class Client(Base):
 
     def entity_state(self, entity_id):
         endpoint = f"states/{entity_id}"
-        return self.request("GET", endpoint)
+        return self.request("GET", endpoint).json()
 
     def call_services(self, domain, service, data):
         endpoint = f"services/{domain}/{service}"
-        return self.request("POST", endpoint, data)
+        return self.request("POST", endpoint, data).json()
 
     @staticmethod
     def domain(entity_id, domain=None):

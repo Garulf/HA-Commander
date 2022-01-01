@@ -51,6 +51,19 @@ class Commander(Flox, Clipboard):
                             font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop'))
                         )
                 return
+            # logbook
+            if query.startswith("@"):
+                for entry in self.client.logbook(query.replace("@", "")):
+                    self.add_item(
+                        title=entry.get("name"),
+                        subtitle=f"{entry.get('message')} @{entry.get('when')}",
+                        method=self.change_query,
+                        parameters=[f'{self.user_keyword} {entry.get("entity_id")}'],
+                        glyph=self.client.grab_icon("history"),
+                        font_family=str(Path(self.plugindir).joinpath('#Material Design Icons Desktop')),
+                        dont_hide=True
+                    )
+                return
             # Main results
             for entity in states:
                 if match(q, entity.entity_id, entity.friendly_name) and entity.entity_id not in self.settings.get('hidden_entities', []):
