@@ -1,6 +1,7 @@
 import os
 import json
 from functools import partial, wraps
+import webbrowser
 
 import requests
 from requests.exceptions import ConnectionError, HTTPError
@@ -365,3 +366,21 @@ class Automation(Entity):
         """Run automation."""
         self._client.call_services("automation", "turn_on", data=self.target)
 
+class Camera(BaseEntity):
+    """Representation of a Camera entity."""
+
+    def __init__(self, client: Client, entity: dict) -> None:
+        super().__init__(client, entity)
+
+    def _default_action(self):
+        self.view()
+
+    @service(icon="camera-image")
+    def snapshot(self) -> None:
+        """Take snapshot."""
+        self._client.call_services("camera", "snapshot", data=self.target)
+
+    @service(icon="television")
+    def view(self) -> None:
+        """View a still from this Camera entity."""
+        webbrowser.open(f'{self._client._url}{self.attributes["entity_picture"]}')
