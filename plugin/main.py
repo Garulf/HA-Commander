@@ -100,8 +100,6 @@ class Commander(Flox, Clipboard):
             if len(self._results) == 0:
                 self.add_item(title="No Results Found!")
  
-
-            
     def context_menu(self, data):
         self.init_hass()
         entity = self.client.create_entity(data[0])
@@ -134,7 +132,6 @@ class Commander(Flox, Clipboard):
             method=self.hide_entity,
             parameters=[entity.entity_id],
         )
-
 
     def action(self, entity_id, query="", service="_default_action"):
         self.init_hass()
