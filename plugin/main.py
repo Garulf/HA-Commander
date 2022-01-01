@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 from flox import Flox, Clipboard
-from client import Client
+from homeassistant import Client
 from requests.exceptions import ReadTimeout, ConnectionError, HTTPError
 
 PLUGIN_JSON = "./plugin.json"
