@@ -46,6 +46,7 @@ palette = 'F03D8'
 star_circle_outline = 'F09A4'
 image_broken = 'F02ED'
 swap_horizontal_bold = 'F0BCD'
+history = 'F02DA'
 
 
 DEFAULT_ICONS = {
@@ -97,4 +98,5 @@ DEFAULT_ICONS = {
     "star-circle-outline": star_circle_outline,
     "image_broken": image_broken,
     "swap_horizontal_bold": swap_horizontal_bold,
+    "history": history,
 }
