@@ -27,14 +27,13 @@ NEW in HA-Commander v3.0.0 and up with Flow Launcher 1.9.0 and up:
 
 Your settings are now located in your Launcher's settings directory:
 
-| Setting    | Type    | Default   | Description                                                                 |
-|------------|---------|-----------|-----------------------------------------------------------------------------|
-| host       | string  | 127.0.0.1 | Your Home Assistant IP address or hostname                                  |
-| port       | int     | 8123      | Your Home Assistant port                                                    |
-| token      | string  | None      | https://developers.home-assistant.io/docs/auth_api/#long-lived-access-token |
-| ssl        | boolean | true      | Set to true if your Home Assistant uses SSL/HTTPS                           |
-| verify_ssl | boolean | true      | Rejects unverified SSL certs if set to true                                 |
-| max_items  | int     | 30        | The max results the launcher will display (Lower is faster)                 |
+| Setting    | Type    | Default          | Description                                                                 |
+|------------|---------|------------------|-----------------------------------------------------------------------------|
+| host       | string  | http://127.0.0.1 | Your Home Assistant URL                               |
+| port       | int     | 8123             | Your Home Assistant port                                                    |
+| token      | string  | None             | https://developers.home-assistant.io/docs/auth_api/#long-lived-access-token |
+| verify_ssl | boolean | true             | Rejects unverified SSL certs if set to true                                 |
+| max_items  | int     | 50               | The max results the launcher will display (Lower is faster)                 |
 
 # How-To:
 
