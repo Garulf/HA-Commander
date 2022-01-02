@@ -4,7 +4,7 @@
   "Name": "HA-Commander",
   "Description": "Search, and interact with Home Assistant using Wox or Flow Launcher.",
   "Author": "Garulf",
-  "Version": "3.0.0",
+  "Version": "3.0.1",
   "Language": "python",
   "Website": "https://github.com/Garulf/HA-Commander",
   "IcoPath": "icons\\home-assistant.png",
