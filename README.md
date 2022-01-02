@@ -73,7 +73,7 @@ Light Color & Effects are now in the context menu of supported lights
 
 ![image](https://user-images.githubusercontent.com/535299/147866370-eabc81e4-e540-4bff-953d-fb2325fbc9f7.png)
 
-#### Hide entities:
+#### Hide entities from results:
 You can now hide entities by invoking the context menu and selecting "Hide Entity"
 
 ![image](https://user-images.githubusercontent.com/535299/147866460-f266ecf4-f1dc-4bba-9bae-d636ce17f489.png)
