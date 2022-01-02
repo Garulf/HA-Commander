@@ -18,7 +18,13 @@ Unzip [HA-Commander.zip](https://github.com/Garulf/HA-Commander/releases/latest)
 
 # Configuration
 
-Please edit your `config.ini` to complete setup:
+NEW in HA-Commander v3.0.0 and up with Flow Launcher 1.9.0 and up:
+
+![image](https://user-images.githubusercontent.com/535299/147866332-5574f241-9da8-44b8-96eb-8aa526fdeee6.png)
+
+
+
+Your settings are now located in your Launcher's settings directory:
 
 | Setting    | Type    | Default   | Description                                                                 |
 |------------|---------|-----------|-----------------------------------------------------------------------------|
@@ -31,25 +37,45 @@ Please edit your `config.ini` to complete setup:
 
 # How-To:
 
-### Basics:
+### Basic:
 
-Begin by typing the default ActionWord: "ha"
+Begin by typing the default ActionWord: "ha" and an `entity_id` or `friendly_name`
+
+![image](https://user-images.githubusercontent.com/535299/147866294-16f9967a-5e3a-4b26-a4b5-cabd930aaf45.png)
 
 
-#### Example:
+### Advanced:
 
-```ha light```
+#### Filter by domains:
+Selecting any domain will show all entities from that domain *only*.
 
-```ha automation```
+![image](https://user-images.githubusercontent.com/535299/147866147-ab6d95c6-566a-4dba-b146-2b6a3e1b62b3.png)
 
-HA-Commander will search by `entity_id` and `friendly_name` if set.
 
-### Interaction:
+#### Show only light entities:
+by typing `ha <domain>.` HA-Commander shows only entities that start with that domain.
 
-At this time entities can only be toggled.
+![image](https://user-images.githubusercontent.com/535299/147866129-c2da5f73-d48d-471b-ad40-96daa8e1b877.png)
+
+
+#### Show Logbook:
+See recently changed entities by typing `ha @`. Selecting an entry brings up the entity in HA-Commander.
+
+![image](https://user-images.githubusercontent.com/535299/147866210-45d2f0b1-51a1-49ab-9275-dfee143571c0.png)
+
+#### Control light brightness:
+Change a lights brightness percentage by typing a number between 0-100 after a light entity
+
+![image](https://user-images.githubusercontent.com/535299/147866261-82521063-8106-4726-8a5a-4f8e0ad6913b.png)
+
+#### Light color and effects:
+Light Color & Effects are now in the context menu of supported lights
+
+![image](https://user-images.githubusercontent.com/535299/147866370-eabc81e4-e540-4bff-953d-fb2325fbc9f7.png)
+
 
 # Requirements
 
-Python 3.6 or higher
+Python 3.8 or higher
 
-Wox, or Flow Launcher
+Flow Launcher 1.9.0 or higher
