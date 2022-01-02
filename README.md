@@ -20,7 +20,8 @@ Unzip [HA-Commander.zip](https://github.com/Garulf/HA-Commander/releases/latest)
 
 NEW in HA-Commander v3.0.0 and up with Flow Launcher 1.9.0 and up:
 
-![image](https://user-images.githubusercontent.com/535299/147866332-5574f241-9da8-44b8-96eb-8aa526fdeee6.png)
+![147866332-5574f241-9da8-44b8-96eb-8aa526fdeee6](https://user-images.githubusercontent.com/535299/147866412-9f7bb589-b3bd-4ce4-84b0-9f4a5fd0a320.png)
+
 
 
 
