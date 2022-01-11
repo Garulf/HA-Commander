@@ -84,3 +84,6 @@ You can now hide entities by invoking the context menu and selecting "Hide Entit
 Python 3.8 or higher
 
 Flow Launcher 1.9.0 or higher
+
+##
+<a href="https://www.buymeacoffee.com/garulf" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
