@@ -47,7 +47,7 @@ Begin by typing the default ActionWord: "ha" and an `entity_id` or `friendly_nam
 ### Advanced:
 
 #### Filter by domains:
-Selecting any domain will show all entities from that domain *only*.
+Typing `#` will bring up a list of available domains. Selecting any domain will show all entities from that domain *only*.
 
 ![image](https://user-images.githubusercontent.com/535299/147866147-ab6d95c6-566a-4dba-b146-2b6a3e1b62b3.png)
 
