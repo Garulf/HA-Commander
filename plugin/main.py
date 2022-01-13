@@ -4,7 +4,8 @@ import string
 from pathlib import Path
 
 
-from flox import Flox, Clipboard
+from flox import Flox
+from flox.clipboard import Clipboard
 from homeassistant import Client
 from requests.exceptions import ReadTimeout, ConnectionError, HTTPError
 
