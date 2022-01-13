@@ -1,0 +1,47 @@
+name: "PR-Packager"
+on:
+  workflow_dispatch:
+  pull_request:
+env:
+  PYTHON_VER: 3.8
+jobs:
+  deps:
+    name: "Build"
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python ${{ env.PYTHON_VER }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VER }}
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'Windows')
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install wheel
+          pip install -r ./requirements.txt -t ./lib
+      - name: Get Plugin's version
+        id: version
+        uses: notiz-dev/github-action-json-property@release
+        with: 
+          path: 'plugin.json'
+          prop_path: 'Version'
+      - name: Package files
+        run: |
+          git clone https://github.com/Garulf/flow_commands/ bin
+          pip install -r ./bin/requirements.txt
+          python ./bin/commands.py package -n "${{github.event.repository.name}}.zip"
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifact
+          path: "./${{github.event.repository.name}}.zip"
