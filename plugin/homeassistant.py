@@ -311,6 +311,12 @@ class MediaPlayer(Entity):
 
     def __init__(self, client: Client, entity: dict) -> None:
         super().__init__(client, entity)
+    @service(icon="arrow-right")
+    def _select_source(self, source) -> None:
+        """Select source."""
+        data = self.target
+        data["source"] = source
+        self._client.call_services("media_player", "select_source", data=data)
 
     @service(icon="play")
     def play(self) -> None:
