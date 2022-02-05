@@ -2,11 +2,14 @@ import os
 import json
 from functools import partial, wraps
 import webbrowser
+import logging
 
 import requests
 from requests.exceptions import ConnectionError, HTTPError
 
 from icons import DEFAULT_ICONS
+
+log = logging.getLogger(__name__)
 
 COLORS_FILE = "./plugin/colors.json"
 META_FILE = "./meta.json"
@@ -308,6 +311,21 @@ class MediaPlayer(Entity):
 
     def __init__(self, client: Client, entity: dict) -> None:
         super().__init__(client, entity)
+        for source in self.attributes.get("source_list", []):
+            setattr(self, source, partial(self._select_source, source))
+            getattr(self, source).name = source
+            getattr(self, source).__doc__ = 'Set Source to "{}"'.format(source)
+            getattr(self, source).icon = "radiobox-blank"
+            if source == self.attributes.get("source"):
+                getattr(self, source).icon = "radiobox-marked"
+                getattr(self, source).__doc__ = "Currently selected Source."
+
+    @service(icon="arrow-right")
+    def _select_source(self, source) -> None:
+        """Select source."""
+        data = self.target
+        data["source"] = source
+        self._client.call_services("media_player", "select_source", data=data)
 
     @service(icon="play")
     def play(self) -> None:
