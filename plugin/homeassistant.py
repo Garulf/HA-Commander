@@ -2,11 +2,14 @@ import os
 import json
 from functools import partial, wraps
 import webbrowser
+import logging
 
 import requests
 from requests.exceptions import ConnectionError, HTTPError
 
 from icons import DEFAULT_ICONS
+
+log = logging.getLogger(__name__)
 
 COLORS_FILE = "./plugin/colors.json"
 META_FILE = "./meta.json"
