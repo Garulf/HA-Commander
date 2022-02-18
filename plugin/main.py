@@ -171,7 +171,6 @@ class Commander(Flox, Clipboard):
         entity = data[0]
         cache_age = 60
         self._results = utils.cache(entity['entity_id'], max_age=cache_age)(self.create_context)(data)
-        # self.debug(len(self._results))
 
 
     def action(self, entity_id, query="", service="_default_action"):
