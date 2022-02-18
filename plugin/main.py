@@ -36,6 +36,7 @@ class Commander(Flox, Clipboard):
     def query(self, query):
         try:
             self.init_hass()
+            self.client.api()
         except (ReadTimeout, ConnectionError, HTTPError):
             self.add_item(
                 title=f"Could not connect to Home Assistant!",
