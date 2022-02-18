@@ -107,7 +107,6 @@ class Base(object):
 class Client(Base):
     def __init__(self, url, token, verify_ssl=True):
         super().__init__(url, token, verify_ssl)
-        self.api()
 
     def api(self):
         return self.request("GET", "")
