@@ -4,7 +4,7 @@ import string
 from pathlib import Path
 
 
-from flox import Flox
+from flox import Flox, utils
 from flox.clipboard import Clipboard
 from homeassistant import Client
 from requests.exceptions import ReadTimeout, ConnectionError, HTTPError
@@ -25,7 +25,14 @@ def match(query, entity, friendly_name):
 
 
 class Commander(Flox, Clipboard):
+
+    def __init__(self):
+        super().__init__()
+        self.font_family = "#Material Design Icons Desktop"
+
+
     def init_hass(self):
+        self.logger.debug("Initializing Home Assistant Client")
         self.client = Client(
             self.settings.get("url"),
             self.settings.get("token"),
@@ -35,6 +42,7 @@ class Commander(Flox, Clipboard):
     def query(self, query):
         try:
             self.init_hass()
+            self.client.api()
         except (ReadTimeout, ConnectionError, HTTPError):
             self.add_item(
                 title=f"Could not connect to Home Assistant!",
@@ -56,11 +64,6 @@ class Commander(Flox, Clipboard):
                             parameters=[f"{self.user_keyword} {domain}."],
                             dont_hide=True,
                             glyph=self.client.grab_icon(domain),
-                            font_family=str(
-                                Path(self.plugindir).joinpath(
-                                    "#Material Design Icons Desktop"
-                                )
-                            ),
                         )
                 return
             # logbook
@@ -72,11 +75,6 @@ class Commander(Flox, Clipboard):
                         method=self.change_query,
                         parameters=[f'{self.user_keyword} {entry.get("entity_id")}'],
                         glyph=self.client.grab_icon("history"),
-                        font_family=str(
-                            Path(self.plugindir).joinpath(
-                                "#Material Design Icons Desktop"
-                            )
-                        ),
                         dont_hide=True,
                     )
                 return
@@ -108,11 +106,6 @@ class Commander(Flox, Clipboard):
                         method="action",
                         parameters=[entity._entity, q],
                         glyph=entity._icon(),
-                        font_family=str(
-                            Path(self.plugindir).joinpath(
-                                "#Material Design Icons Desktop"
-                            )
-                        ),
                     )
 
                 if len(self._results) > MAX_ITEMS:
@@ -121,7 +114,7 @@ class Commander(Flox, Clipboard):
             if len(self._results) == 0:
                 self.add_item(title="No Results Found!")
 
-    def context_menu(self, data):
+    def create_context(self, data):
         self.init_hass()
         entity = self.client.create_entity(data[0])
         for attr in dir(entity):
@@ -135,11 +128,6 @@ class Commander(Flox, Clipboard):
                         glyph=self.client.grab_icon(
                             getattr(getattr(entity, attr), "icon", "image_broken")
                         ),
-                        font_family=str(
-                            Path(self.plugindir).joinpath(
-                                "#Material Design Icons Desktop"
-                            )
-                        ),
                     )
                     if getattr(getattr(entity, attr), "_service", False):
                         self._results.insert(0, self._results.pop(-1))
@@ -148,11 +136,6 @@ class Commander(Flox, Clipboard):
                         title=str(getattr(entity, attr)),
                         subtitle=str(attr.replace("_", " ").title()),
                         glyph=self.client.grab_icon("information"),
-                        font_family=str(
-                            Path(self.plugindir).joinpath(
-                                "#Material Design Icons Desktop"
-                            )
-                        ),
                         method=self.put,
                         parameters=[str(getattr(entity, attr))],
                     )
@@ -163,10 +146,19 @@ class Commander(Flox, Clipboard):
             method=self.hide_entity,
             parameters=[entity.entity_id],
         )
+        return self._results
+
+
+    def context_menu(self, data):
+        entity = data[0]
+        cache_age = 60
+        self._results = utils.cache(entity['entity_id'], max_age=cache_age)(self.create_context)(data)
+
 
     def action(self, entity_id, query="", service="_default_action"):
         self.init_hass()
         entity = self.client.create_entity(entity_id)
+        utils.remove_cache(entity.entity_id)
         try:
             if (
                 self.client.domain(entity.entity_id, "light")

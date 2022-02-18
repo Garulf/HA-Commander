@@ -13,7 +13,8 @@ log = logging.getLogger(__name__)
 
 COLORS_FILE = "./plugin/colors.json"
 META_FILE = "./meta.json"
-
+with open(META_FILE, "r") as f:
+    ICONS = json.load(f)
 with open(COLORS_FILE, "r") as _f:
     COLORS = json.load(_f)
 
@@ -97,17 +98,15 @@ class Base(object):
         return None
 
     def lookup_icon(self, name):
-        with open(META_FILE, "r") as f:
-            for _icon in json.load(f):
-                if name == _icon["name"]:
-                    return chr(int(_icon["codepoint"], 16))
+        for _icon in ICONS:
+            if name == _icon["name"]:
+                return chr(int(_icon["codepoint"], 16))
         return None
 
 
 class Client(Base):
     def __init__(self, url, token, verify_ssl=True):
         super().__init__(url, token, verify_ssl)
-        self.api()
 
     def api(self):
         return self.request("GET", "")
@@ -316,9 +315,10 @@ class MediaPlayer(Entity):
             getattr(self, source).name = source
             getattr(self, source).__doc__ = 'Set Source to "{}"'.format(source)
             getattr(self, source).icon = "radiobox-blank"
-            if source == self.attributes.get("source"):
-                getattr(self, source).icon = "radiobox-marked"
-                getattr(self, source).__doc__ = "Currently selected Source."
+        current_source = self.attributes.get("source")
+        if current_source:
+            getattr(self, current_source).icon = "radiobox-marked"
+            getattr(self, current_source).__doc__ = "Currently selected Source."
 
     @service(icon="arrow-right")
     def _select_source(self, source) -> None:
