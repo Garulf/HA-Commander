@@ -98,10 +98,9 @@ class Base(object):
         return None
 
     def lookup_icon(self, name):
-        with open(META_FILE, "r") as f:
-            for _icon in json.load(f):
-                if name == _icon["name"]:
-                    return chr(int(_icon["codepoint"], 16))
+        for _icon in ICONS:
+            if name == _icon["name"]:
+                return chr(int(_icon["codepoint"], 16))
         return None
 
 
