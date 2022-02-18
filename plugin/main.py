@@ -25,6 +25,12 @@ def match(query, entity, friendly_name):
 
 
 class Commander(Flox, Clipboard):
+
+    def __init__(self):
+        super().__init__()
+        self.font_family = "#Material Design Icons Desktop"
+
+
     def init_hass(self):
         self.logger.debug("Initializing Home Assistant Client")
         self.client = Client(
@@ -58,11 +64,6 @@ class Commander(Flox, Clipboard):
                             parameters=[f"{self.user_keyword} {domain}."],
                             dont_hide=True,
                             glyph=self.client.grab_icon(domain),
-                            font_family=str(
-                                Path(self.plugindir).joinpath(
-                                    "#Material Design Icons Desktop"
-                                )
-                            ),
                         )
                 return
             # logbook
@@ -74,11 +75,6 @@ class Commander(Flox, Clipboard):
                         method=self.change_query,
                         parameters=[f'{self.user_keyword} {entry.get("entity_id")}'],
                         glyph=self.client.grab_icon("history"),
-                        font_family=str(
-                            Path(self.plugindir).joinpath(
-                                "#Material Design Icons Desktop"
-                            )
-                        ),
                         dont_hide=True,
                     )
                 return
@@ -110,11 +106,6 @@ class Commander(Flox, Clipboard):
                         method="action",
                         parameters=[entity._entity, q],
                         glyph=entity._icon(),
-                        font_family=str(
-                            Path(self.plugindir).joinpath(
-                                "#Material Design Icons Desktop"
-                            )
-                        ),
                     )
 
                 if len(self._results) > MAX_ITEMS:
@@ -137,11 +128,6 @@ class Commander(Flox, Clipboard):
                         glyph=self.client.grab_icon(
                             getattr(getattr(entity, attr), "icon", "image_broken")
                         ),
-                        font_family=str(
-                            Path(self.plugindir).joinpath(
-                                "#Material Design Icons Desktop"
-                            )
-                        ),
                     )
                     if getattr(getattr(entity, attr), "_service", False):
                         self._results.insert(0, self._results.pop(-1))
@@ -150,11 +136,6 @@ class Commander(Flox, Clipboard):
                         title=str(getattr(entity, attr)),
                         subtitle=str(attr.replace("_", " ").title()),
                         glyph=self.client.grab_icon("information"),
-                        font_family=str(
-                            Path(self.plugindir).joinpath(
-                                "#Material Design Icons Desktop"
-                            )
-                        ),
                         method=self.put,
                         parameters=[str(getattr(entity, attr))],
                     )
