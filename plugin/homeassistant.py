@@ -13,7 +13,8 @@ log = logging.getLogger(__name__)
 
 COLORS_FILE = "./plugin/colors.json"
 META_FILE = "./meta.json"
-
+with open(META_FILE, "r") as f:
+    ICONS = json.load(f)
 with open(COLORS_FILE, "r") as _f:
     COLORS = json.load(_f)
 
