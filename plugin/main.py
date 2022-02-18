@@ -4,7 +4,7 @@ import string
 from pathlib import Path
 
 
-from flox import Flox
+from flox import Flox, utils
 from flox.clipboard import Clipboard
 from homeassistant import Client
 from requests.exceptions import ReadTimeout, ConnectionError, HTTPError
@@ -26,6 +26,7 @@ def match(query, entity, friendly_name):
 
 class Commander(Flox, Clipboard):
     def init_hass(self):
+        self.logger.debug("Initializing Home Assistant Client")
         self.client = Client(
             self.settings.get("url"),
             self.settings.get("token"),
@@ -121,7 +122,7 @@ class Commander(Flox, Clipboard):
             if len(self._results) == 0:
                 self.add_item(title="No Results Found!")
 
-    def context_menu(self, data):
+    def create_context(self, data):
         self.init_hass()
         entity = self.client.create_entity(data[0])
         for attr in dir(entity):
@@ -163,10 +164,20 @@ class Commander(Flox, Clipboard):
             method=self.hide_entity,
             parameters=[entity.entity_id],
         )
+        return self._results
+
+
+    def context_menu(self, data):
+        entity = data[0]
+        cache_age = 60
+        self._results = utils.cache(entity['entity_id'], max_age=cache_age)(self.create_context)(data)
+        # self.debug(len(self._results))
+
 
     def action(self, entity_id, query="", service="_default_action"):
         self.init_hass()
         entity = self.client.create_entity(entity_id)
+        utils.remove_cache(entity.entity_id)
         try:
             if (
                 self.client.domain(entity.entity_id, "light")
