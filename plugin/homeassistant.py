@@ -316,9 +316,10 @@ class MediaPlayer(Entity):
             getattr(self, source).name = source
             getattr(self, source).__doc__ = 'Set Source to "{}"'.format(source)
             getattr(self, source).icon = "radiobox-blank"
-            if source == self.attributes.get("source"):
-                getattr(self, source).icon = "radiobox-marked"
-                getattr(self, source).__doc__ = "Currently selected Source."
+        current_source = self.attributes.get("source")
+        if current_source:
+            getattr(self, current_source).icon = "radiobox-marked"
+            getattr(self, current_source).__doc__ = "Currently selected Source."
 
     @service(icon="arrow-right")
     def _select_source(self, source) -> None:
