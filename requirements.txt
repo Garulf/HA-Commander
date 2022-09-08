@@ -1,2 +1,2 @@
 requests==2.25.1
-git+https://github.com/garulf/flox@v0.10.4#egg=flox-lib
+flox-lib==0.18.0
