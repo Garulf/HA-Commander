@@ -176,7 +176,8 @@ class BaseEntity(object):
         self.entity_id = entity.get("entity_id")
         self.domain = self.entity_id.split(".")[0]
         self.name = entity.get("name")
-        self.friendly_name = entity.get("attributes", "").get("friendly_name", "")
+        self.friendly_name = entity.get(
+            "attributes", "").get("friendly_name", "")
         self.state = entity.get("state")
         self.attributes = entity["attributes"]
         self.target = {"entity_id": self.entity_id}
@@ -225,7 +226,8 @@ class Entity(BaseEntity):
         for arg in service_data:
             service_data[arg] = service_data[arg]
         service_data["entity_id"] = self.entity_id
-        self._client.call_services("homeassistant", "turn_on", data=service_data)
+        self._client.call_services(
+            "homeassistant", "turn_on", data=service_data)
 
     @service(icon="switch_off", score=100)
     def turn_off(self, **service_data) -> None:
@@ -233,7 +235,8 @@ class Entity(BaseEntity):
         for arg in service_data:
             service_data[arg] = service_data[arg]
         service_data["entity_id"] = self.entity_id
-        self._client.call_services("homeassistant", "turn_off", data=service_data)
+        self._client.call_services(
+            "homeassistant", "turn_off", data=service_data)
 
 
 class Light(Entity):
@@ -250,7 +253,8 @@ class Light(Entity):
         for effect in self.attributes.get("effect_list", []):
             setattr(self, f"{effect}", partial(self.turn_on, effect=effect))
             getattr(self, f"{effect}").name = effect.title()
-            getattr(self, f"{effect}").__doc__ = f"Set light effect to {effect}."
+            getattr(
+                self, f"{effect}").__doc__ = f"Set light effect to {effect}."
             getattr(self, f"{effect}").icon = "star-circle-outline"
             getattr(self, f"{effect}").score = 0
             # print(getattr(self, f"{color}").__icon__)
@@ -336,12 +340,14 @@ class MediaPlayer(Entity):
     @service(icon="pause")
     def pause(self) -> None:
         """Pause currently playing media."""
-        self._client.call_services("media_player", "media_pause", data=self.target)
+        self._client.call_services(
+            "media_player", "media_pause", data=self.target)
 
     @service(icon="play-pause")
     def play_pause(self) -> None:
         """Toggle Play/Pause."""
-        self._client.call_services("media_player", "media_play_pause", data=self.target)
+        self._client.call_services(
+            "media_player", "media_play_pause", data=self.target)
 
 
 class Climate(Entity):
@@ -362,7 +368,8 @@ class Climate(Entity):
             mode_index = 0
         service_data = self.target
         service_data["hvac_mode"] = self.hvac_modes[mode_index]
-        self._client.call_services("climate", "set_hvac_mode", data=service_data)
+        self._client.call_services(
+            "climate", "set_hvac_mode", data=service_data)
 
 
 class Script(Entity):
@@ -413,7 +420,8 @@ class Camera(BaseEntity):
     @service(icon="television")
     def view(self) -> None:
         """View a still from this Camera entity."""
-        webbrowser.open(f'{self._client._url}{self.attributes["entity_picture"]}')
+        webbrowser.open(
+            f'{self._client._url}{self.attributes["entity_picture"]}')
 
 
 class InputSelect(BaseEntity):
