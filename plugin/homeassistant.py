@@ -475,3 +475,16 @@ class Group(Entity):
             getattr(self, entity).__doc__ = 'Toggle entity "{}"'.format(entity)
             getattr(self, entity).icon = "checkbox-multiple-blank"
             getattr(self, entity)._service = True
+
+
+class Scene(Entity):
+    def __init__(self, client: Client, entity: dict) -> None:
+        super().__init__(client, entity)
+
+    def _default_action(self):
+        self.activate()
+
+    @service(icon="play")
+    def activate(self) -> None:
+        """Activate scene."""
+        self._client.call_services("scene", "turn_on", data=self.target)
