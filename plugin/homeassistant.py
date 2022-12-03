@@ -429,7 +429,7 @@ class InputSelect(BaseEntity):
 
     def __init__(self, client: Client, entity: dict) -> None:
         super().__init__(client, entity)
-        for option in self.attributes["options"]:
+        for option in self.attributes.get("options", []):
             setattr(self, option, partial(self._select, option))
             getattr(self, option).name = option
             getattr(self, option).__doc__ = 'Set option to "{}"'.format(option)
