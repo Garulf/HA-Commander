@@ -3,6 +3,8 @@ import json
 from functools import partial, wraps
 import webbrowser
 import logging
+import urllib3
+from urllib3.exceptions import InsecureRequestWarning
 
 import requests
 from requests.exceptions import ConnectionError, HTTPError
@@ -10,6 +12,8 @@ from requests.exceptions import ConnectionError, HTTPError
 from icons import DEFAULT_ICONS
 
 log = logging.getLogger(__name__)
+# This warning prints to stdout and is not catchable so we need to disable it
+urllib3.disable_warnings(InsecureRequestWarning)
 
 COLORS_FILE = "./plugin/colors.json"
 META_FILE = "./meta.json"
