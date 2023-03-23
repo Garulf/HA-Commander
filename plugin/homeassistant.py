@@ -325,7 +325,6 @@ class MediaPlayer(Entity):
             getattr(self, source).icon = "radiobox-blank"
         current_source = self.attributes.get("source")
         if current_source:
-            setattr(self, current_source, partial(self._select_source, source))
             getattr(self, current_source).icon = "radiobox-marked"
             getattr(self, current_source).__doc__ = "Currently selected Source."
 
