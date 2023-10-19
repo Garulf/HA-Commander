@@ -10,4 +10,5 @@ sys.path.append(os.path.join(plugindir, "plugin"))
 from plugin.main import Commander
 
 if __name__ == "__main__":
-    Commander()
+    commander = Commander()
+    commander.run()
