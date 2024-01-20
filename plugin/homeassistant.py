@@ -491,3 +491,15 @@ class Scene(Entity):
     def activate(self) -> None:
         """Activate scene."""
         self._client.call_services("scene", "turn_on", data=self.target)
+
+class Button(BaseEntity):
+    def __init__(self, client: Client, entity: dict) -> None:
+        super().__init__(client, entity)
+
+    def _default_action(self):
+        self.press()
+
+    @service(icon="gesture-tap")
+    def press(self) -> None:
+        """Press button"""
+        self._client.call_services("button", "press", data=self.target)
