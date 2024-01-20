@@ -47,6 +47,7 @@ star_circle_outline = "F09A4"
 image_broken = "F02ED"
 swap_horizontal_bold = "F0BCD"
 history = "F02DA"
+gesture_tap = "F0741"
 
 
 DEFAULT_ICONS = {
@@ -68,6 +69,7 @@ DEFAULT_ICONS = {
     "group_off": checkbox_multiple_blank_outline,
     "input_boolean": checkbox_blank_circle_outline,
     "input_boolean_on": checkbox_marked,
+    "button": gesture_tap,
     "input_select": form_select,
     "input_number": counter,
     "input_text": form_textbox,
