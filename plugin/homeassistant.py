@@ -254,7 +254,7 @@ class Light(Entity):
             getattr(self, f"{color}").__doc__ = f"Set light color to {color}."
             getattr(self, f"{color}").icon = "palette"
             getattr(self, f"{color}").score = 0
-        for effect in self.attributes.get("effect_list", []):
+        for effect in self.attributes.get("effect_list", []) or []:
             setattr(self, f"{effect}", partial(self.turn_on, effect=effect))
             getattr(self, f"{effect}").name = effect.title()
             getattr(
