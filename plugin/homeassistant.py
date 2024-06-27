@@ -183,7 +183,7 @@ class BaseEntity(object):
         self.friendly_name = entity.get(
             "attributes", "").get("friendly_name", "")
         self.state = entity.get("state")
-        self.attributes = entity["attributes"]
+        self.attributes = entity["attributes"] or {}
         self.target = {"entity_id": self.entity_id}
         # for attribute in entity['attributes']:
         #     setattr(self, attribute, entity['attributes'][attribute])
@@ -452,7 +452,7 @@ class InputSelect(BaseEntity):
 class Select(BaseEntity):
     def __init__(self, client: Client, entity: dict) -> None:
         super().__init__(client, entity)
-        for option in self.attributes["options"]:
+        for option in self.attributes.get("options", []):
             setattr(self, option, partial(self._select, option))
             getattr(self, option).name = option
             getattr(self, option).__doc__ = 'Set option to "{}"'.format(option)
