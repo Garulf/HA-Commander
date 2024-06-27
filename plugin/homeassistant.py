@@ -183,7 +183,7 @@ class BaseEntity(object):
         self.friendly_name = entity.get(
             "attributes", "").get("friendly_name", "")
         self.state = entity.get("state")
-        self.attributes = entity["attributes"]
+        self.attributes = entity["attributes"] or {}
         self.target = {"entity_id": self.entity_id}
         # for attribute in entity['attributes']:
         #     setattr(self, attribute, entity['attributes'][attribute])
