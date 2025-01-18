@@ -98,6 +98,10 @@ class Commander(Flox, Clipboard):
                         entity.entity_id, "light"
                     ):
                         subtitle = f"{subtitle} - Press ENTER to change brightness to: {q.split('_')[-1]}%"
+                    if q.split("_")[-1].isdigit() and self.client.domain(
+                        entity.entity_id, "cover"
+                    ):
+                        subtitle = f"{subtitle} - Press ENTER to open Cover to: {q.split('_')[-1]}%"
                     self.add_item(
                         title=f"{entity.friendly_name or entity.entity_id}",
                         subtitle=subtitle.replace("_", " ").title(),
@@ -165,6 +169,11 @@ class Commander(Flox, Clipboard):
                 and query.split("_")[-1].isdigit()
             ):
                 entity._brightness_pct(int(query.split("_")[-1]))
+            elif (
+                self.client.domain(entity.entity_id, "cover")
+                and query.split("_")[-1].isdigit()
+            ):
+                entity._current_position(int(query.split("_")[-1]))
             else:
                 getattr(entity, service)()
         except (HTTPError, ReadTimeout, ConnectionError):

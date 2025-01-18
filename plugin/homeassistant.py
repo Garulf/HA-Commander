@@ -503,3 +503,17 @@ class Button(BaseEntity):
     def press(self) -> None:
         """Press button"""
         self._client.call_services("button", "press", data=self.target)
+
+class Cover(Entity):
+    """Representation of a Cover entity."""
+    def __init__(self, client: Client, entity: dict) -> None:
+        super().__init__(client, entity)
+        self.current_position = self._entity["attributes"].get("current_position", 'None')
+        self.current = entity.get("attributes", "").get("current_position", "");
+
+    def _current_position(self, current_position: int) -> None:
+        """Set Current Postion of the Cover."""
+        #self.turn_on(**{"current_position": current_position})
+        data = self.target
+        data["position"] = current_position
+        self._client.call_services("cover", "set_cover_position", data=data)
