@@ -1,4 +1,4 @@
-# run.py — generic shim, identical across all plugins
+# run.py: generic shim, identical across all plugins
 import runpy
 import sys
 import os
