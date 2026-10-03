@@ -3,6 +3,7 @@ import asyncio
 import requests
 
 import commander
+import icons
 from launcher import KEEP_OPEN
 
 
@@ -20,7 +21,7 @@ def test_entity_result_runs_default_action_and_has_context(client):
     assert result["JsonRPCAction"]["Method"] == "action"
     assert result["JsonRPCAction"]["Parameters"][0]["entity_id"] == "light.kitchen"
     assert result["ContextData"][0]["entity_id"] == "light.kitchen"
-    assert result["Glyph"]["FontFamily"].endswith("MaterialDesignIconsDesktop.ttf")
+    assert result["Glyph"]["FontFamily"].endswith("materialdesignicons-webfont.ttf")
     assert result["Preview"] is not None
 
 
@@ -86,9 +87,9 @@ def test_call_service_sets_brightness_or_runs_service(client):
     ]
 
 
-def test_custom_mdi_icon_is_used_when_domain_has_none(client):
-    entity = client.create_entity({"entity_id": "custom_widget.robot", "state": "docked", "attributes": {"icon": "mdi:robot-vacuum"}})
-    assert entity._icon() == client.lookup_icon("robot-vacuum") is not None
+def test_custom_mdi_icon_overrides_domain_icon(client):
+    entity = client.create_entity({"entity_id": "light.desk", "state": "on", "attributes": {"icon": "mdi:robot-vacuum"}})
+    assert entity._icon() == icons.icon("robot-vacuum") is not None
 
 
 def test_query_without_token_asks_for_settings(settings):

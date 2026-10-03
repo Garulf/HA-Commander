@@ -25,8 +25,8 @@ THEMES = {"dark": "#FFFFFF", "light": "#1B1B1B"}
 HERO = {"shot": "search", "theme": "light", "css": "hero-win11-accent.css"}
 HERO_WIDTH = 1600
 
-CODEPOINTS = {icon["name"]: icon["codepoint"] for icon in json.loads((PLUGIN_ASSETS / "meta.json").read_text(encoding="utf-8"))}
-FONT = ImageFont.truetype(str(PLUGIN_ASSETS / "MaterialDesignIconsDesktop.ttf"), 112)
+CODEPOINTS = json.loads((PLUGIN_ASSETS / "icons.json").read_text(encoding="utf-8"))["icons"]
+FONT = ImageFont.truetype(str(PLUGIN_ASSETS / "materialdesignicons-webfont.ttf"), 112)
 
 
 def glyph_png(name: str, color: str, out_dir: Path) -> Path:

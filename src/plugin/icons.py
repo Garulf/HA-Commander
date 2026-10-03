@@ -1,104 +1,73 @@
-account = "F0004"
-alert = "F0026"
-calendar = "F00ED"
-calendar_clock = "F00F0"
-cctv = "F07AE"
-checkbox_blank_circle_outline = "F0130"
-checkbox_blank_circle_outline = "F0130"
-checkbox_marked = "F0132"
-checkbox_marked_circle = "F0133"
-checkbox_multiple_blank = "F0136"
-checkbox_multiple_blank_outline = "F0137"
-checkbox_multiple_marked = "F0138"
-clock = "F0954"
-counter = "F0199"
-crosshairs_gps = "F01A4"
-fan = "F0210"
-file_code = "F022E"
-form_select = "F1401"
-form_textbox = "F060E"
-gauge = "F029A"
-home_assistant = "F07D0"
-lightbulb = "F0335"
-lock = "F033E"
-lock_open = "F033F"
-map_marker_radius = "F0352"
-message = "F0361"
-music_note = "F0387"
-music_note_off = "F038A"
-order_bool_ascending_variant = "F098F"
-playlist_check = "F05C7"
-playlist_remove = "F0413"
-remote = "F0454"
-remote_off = "F0EC4"
-thermostat = "F0393"
-toggle_switch = "F0521"
-toggle_switch_off = "F0522"
-view_dashboard_outline = "F0A1D"
-weather_fog = "F0591"
-weather_night = "F0594"
-weather_partly_cloudy = "F0595"
-weather_sunny = "F0599"
-window_shutter = "F111C"
-window_shutter_open = "F111E"
-information = "F02FC"
-palette = "F03D8"
-star_circle_outline = "F09A4"
-image_broken = "F02ED"
-swap_horizontal_bold = "F0BCD"
-history = "F02DA"
-gesture_tap = "F0741"
+import json
+from bisect import bisect_right
+from pathlib import Path
+from typing import Dict, NamedTuple, Optional, Tuple
+
+ICONS_FILE = Path(__file__).resolve().parent / "assets" / "icons.json"
+DEFAULT_CLASS = "_"
 
 
-DEFAULT_ICONS = {
-    "person": account,
-    "lock": lock,
-    "lock_open": lock_open,
-    "light": lightbulb,
-    "switch": toggle_switch,
-    "switch_off": toggle_switch_off,
-    "binary_sensor": checkbox_marked_circle,
-    "binary_sensor_off": checkbox_blank_circle_outline,
-    "sensor": gauge,
-    "climate": thermostat,
-    "cover": window_shutter,
-    "cover_open": window_shutter_open,
-    "scene": view_dashboard_outline,
-    "group": checkbox_multiple_blank,
-    "group_on": checkbox_multiple_marked,
-    "group_off": checkbox_multiple_blank_outline,
-    "input_boolean": checkbox_blank_circle_outline,
-    "input_boolean_on": checkbox_marked,
-    "button": gesture_tap,
-    "input_select": form_select,
-    "input_number": counter,
-    "input_text": form_textbox,
-    "input_datetime": calendar_clock,
-    "timer": clock,
-    "calendar": calendar,
-    "select": order_bool_ascending_variant,
-    "sun": weather_sunny,
-    "moon": weather_night,
-    "weather": weather_partly_cloudy,
-    "homeassistant": home_assistant,
-    "zone": map_marker_radius,
-    "script": file_code,
-    "fan": fan,
-    "camera": cctv,
-    "automation": playlist_check,
-    "automation_off": playlist_remove,
-    "media_player": music_note,
-    "media_player_off": music_note_off,
-    "remote": remote,
-    "remote_off": remote_off,
-    "device_tracker": crosshairs_gps,
-    "persistent_notification": message,
-    "air_quality": weather_fog,
-    "unavailable": alert,
-    "information": information,
-    "palette": palette,
-    "star-circle-outline": star_circle_outline,
-    "image_broken": image_broken,
-    "swap_horizontal_bold": swap_horizontal_bold,
-    "history": history,
-}
+class EntityIcons(NamedTuple):
+    default: Optional[str]
+    states: Dict[str, str]
+    range_bounds: Tuple[float, ...]
+    range_glyphs: Tuple[str, ...]
+
+
+def _load():
+    data = json.loads(ICONS_FILE.read_text(encoding="utf-8"))
+    codepoints = data["icons"]
+
+    def glyph(name):
+        return chr(int(codepoints[name], 16)) if name in codepoints else None
+
+    def entity_icons(variant: dict) -> EntityIcons:
+        ranges = sorted((float(bound), glyph(name)) for bound, name in variant.get("range", {}).items())
+        return EntityIcons(
+            glyph(variant.get("default")),
+            {state: glyph(name) for state, name in variant.get("state", {}).items()},
+            tuple(bound for bound, _ in ranges),
+            tuple(glyph for _, glyph in ranges),
+        )
+
+    domains = {
+        domain: {device_class: entity_icons(variant) for device_class, variant in variants.items()}
+        for domain, variants in data["domains"].items()
+    }
+    return codepoints, domains
+
+
+CODEPOINTS, DOMAINS = _load()
+
+
+def icon(name: Optional[str]) -> Optional[str]:
+    """Glyph for an MDI icon name, with or without the ``mdi:`` prefix."""
+    if not name:
+        return None
+    codepoint = CODEPOINTS.get(name[4:] if name.startswith("mdi:") else name)
+    return chr(int(codepoint, 16)) if codepoint else None
+
+
+def _range_glyph(icons: EntityIcons, state: Optional[str]) -> Optional[str]:
+    if not icons.range_bounds or state is None:
+        return None
+    try:
+        index = bisect_right(icons.range_bounds, float(state)) - 1
+    except ValueError:
+        return None
+    return icons.range_glyphs[max(index, 0)]
+
+
+def entity_icon(domain: str, state: Optional[str] = None, device_class: Optional[str] = None) -> Optional[str]:
+    """Glyph Home Assistant shows for an entity of this domain, state and device class."""
+    variants = DOMAINS.get(domain)
+    if not variants:
+        return None
+    default = variants.get(DEFAULT_CLASS)
+    for icons in (variants.get(device_class), default):
+        if icons is None:
+            continue
+        glyph = icons.states.get(state) or _range_glyph(icons, state) or icons.default
+        if glyph:
+            return glyph
+    return None

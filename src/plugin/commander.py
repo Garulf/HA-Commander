@@ -8,6 +8,7 @@ from typing import Iterable, List
 from pyflowlauncher import Plugin, api
 from requests.exceptions import HTTPError, RequestException
 
+import icons
 from homeassistant import Client
 from launcher import KEEP_OPEN, HassLauncher
 from results import ICON, HassResult, make_result, preview, settings_result
@@ -113,7 +114,7 @@ def domain_results(client: Client, q: str) -> List[HassResult]:
         make_result(
             domain,
             "Search for entities in this domain",
-            client.grab_icon(domain),
+            icons.entity_icon(domain),
         ).add_action(change_query, [full_query(f"{domain}.")])
         for domain in client.get_domains(client.states())
         if match(q, "", domain)
@@ -131,7 +132,7 @@ def logbook_results(client: Client, q: str) -> List[HassResult]:
         result = make_result(
             name,
             f"{entry.get('message')} @{entry.get('when')}",
-            client.grab_icon("history"),
+            icons.icon("history"),
             score=max_results() - len(results),
         )
         if entity_id:
@@ -195,7 +196,7 @@ def context_menu(data):
             result = make_result(
                 getattr(value, "name", ""),
                 value.__doc__,
-                client.grab_icon(getattr(value, "icon", "image_broken")),
+                icons.icon(getattr(value, "icon", "image-broken")),
             ).add_action(action, [data[0], "", attr])
             if getattr(value, "_service", False):
                 results.insert(0, result)
@@ -205,12 +206,12 @@ def context_menu(data):
             results.append(make_result(
                 str(value),
                 attr.replace("_", " ").title(),
-                client.grab_icon("information"),
+                icons.icon("information"),
             ).add_action(api.copy_to_clipboard(str(value))))
     results.append(make_result(
         "Hide Entity",
         "Hide this entity from the results",
-        client.lookup_icon("eye-off"),
+        icons.icon("eye-off"),
         settings_change={"hidden_entities": hidden_entities() + [entity.entity_id]},
     ).add_action(api.show_msg(
         "Entity hidden", f"{entity.entity_id} will no longer be shown in the results.", ICON,

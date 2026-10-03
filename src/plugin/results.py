@@ -9,7 +9,7 @@ from pyflowlauncher.models.result import Glyph, PreviewInfo
 
 PLUGIN_DIR = Path(__file__).resolve().parent
 ICON = str(PLUGIN_DIR.parent / "icon.png")
-FONT = str(PLUGIN_DIR / "assets" / "MaterialDesignIconsDesktop.ttf")
+FONT = str(PLUGIN_DIR / "assets" / "materialdesignicons-webfont.ttf")
 
 
 @dataclass

@@ -13,7 +13,7 @@
     {
       "title": "cover",
       "subtitle": "Search for entities in this domain",
-      "glyph": "window-shutter"
+      "glyph": "window-open"
     },
     {
       "title": "light",
@@ -28,7 +28,7 @@
     {
       "title": "media_player",
       "subtitle": "Search for entities in this domain",
-      "glyph": "music-note"
+      "glyph": "cast"
     }
   ],
   "query_suggestion": "",
