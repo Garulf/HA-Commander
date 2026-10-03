@@ -44,7 +44,9 @@ jobs:
 
       - name: Package
         id: package
-        run: echo "zip_path=$(scripts/package.sh "$RUNNER_TEMP/dist")" >> "$GITHUB_OUTPUT"
+        run: |
+          zip_path="$(scripts/package.sh "$RUNNER_TEMP/dist")"
+          echo "zip_path=$zip_path" >> "$GITHUB_OUTPUT"
 
       - name: Upload archive to release
         env:
@@ -98,7 +100,8 @@ jobs:
         run: |
           version="$(jq -r .Version data/plugin.json)"
           echo "tag=v${version}-rc.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
-          echo "zip_path=$(scripts/package.sh "$RUNNER_TEMP/dist")" >> "$GITHUB_OUTPUT"
+          zip_path="$(scripts/package.sh "$RUNNER_TEMP/dist")"
+          echo "zip_path=$zip_path" >> "$GITHUB_OUTPUT"
 
       - name: Replace pre-release
         env:
