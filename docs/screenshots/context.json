@@ -1,0 +1,36 @@
+{
+  "keyword": "ha",
+  "query": "living room lights",
+  "icon": "../../data/icon.png",
+  "max_results": 5,
+  "selection": 3,
+  "results": [
+    {
+      "title": "Turn On",
+      "subtitle": "Turn entity on.",
+      "glyph": "toggle-switch"
+    },
+    {
+      "title": "Turn Off",
+      "subtitle": "Turn entity off.",
+      "glyph": "toggle-switch-off"
+    },
+    {
+      "title": "Toggle",
+      "subtitle": "Toggle entity.",
+      "glyph": "swap-horizontal-bold"
+    },
+    {
+      "title": "Colorloop",
+      "subtitle": "Set light effect to Colorloop.",
+      "glyph": "star-circle-outline"
+    },
+    {
+      "title": "Rainbow",
+      "subtitle": "Set light effect to Rainbow.",
+      "glyph": "star-circle-outline"
+    }
+  ],
+  "query_suggestion": "",
+  "show_caret": false
+}

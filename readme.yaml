@@ -1,0 +1,19 @@
+# readwright configuration. All keys are optional; autodetected values are shown.
+# Run `readwright badges` / `readwright blocks` to list badge presets and template blocks.
+template: docs/README.md.j2
+project:
+  name: HA-Commander
+  owner: Garulf
+  repo: HA-Commander
+  tagline: Search and control your Home Assistant entities from Flow Launcher.
+  ci_workflow: tests.yml
+banner:
+  image: .github/assets/hero.png
+  alt: HA-Commander hero image
+screenshots:
+  dir: .github/assets
+badges: [ci, github-release]
+donate: [buymeacoffee, github-sponsors]
+donate_handles:
+  buymeacoffee: garulf
+  github-sponsors: Garulf

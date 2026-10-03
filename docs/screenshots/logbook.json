@@ -1,0 +1,31 @@
+{
+  "keyword": "ha",
+  "query": "@",
+  "icon": "../../data/icon.png",
+  "max_results": 4,
+  "selection": 0,
+  "results": [
+    {
+      "title": "Living Room TV",
+      "subtitle": "changed to playing @2026-10-02T18:20:57+00:00",
+      "glyph": "history"
+    },
+    {
+      "title": "Coffee Maker",
+      "subtitle": "turned off @2026-10-02T18:12:03+00:00",
+      "glyph": "history"
+    },
+    {
+      "title": "Living Room Lights",
+      "subtitle": "turned on @2026-10-02T18:05:40+00:00",
+      "glyph": "history"
+    },
+    {
+      "title": "Front Door",
+      "subtitle": "changed to unlocked @2026-10-02T18:02:11+00:00",
+      "glyph": "history"
+    }
+  ],
+  "query_suggestion": "",
+  "show_caret": false
+}

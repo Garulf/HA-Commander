@@ -1,0 +1,26 @@
+{
+  "keyword": "ha",
+  "query": "living room lights",
+  "icon": "../../data/icon.png",
+  "max_results": 3,
+  "selection": 2,
+  "results": [
+    {
+      "title": "Living Room Lights",
+      "subtitle": "Friendly Name",
+      "glyph": "information"
+    },
+    {
+      "title": "on",
+      "subtitle": "State",
+      "glyph": "information"
+    },
+    {
+      "title": "Hide Entity",
+      "subtitle": "Hide this entity from the results",
+      "glyph": "eye-off"
+    }
+  ],
+  "query_suggestion": "",
+  "show_caret": false
+}

@@ -1,0 +1,26 @@
+{
+  "keyword": "ha",
+  "query": "living",
+  "icon": "../../data/icon.png",
+  "max_results": 3,
+  "selection": 0,
+  "results": [
+    {
+      "title": "Living Room Lights",
+      "subtitle": "[Light] On",
+      "glyph": "lightbulb"
+    },
+    {
+      "title": "Living Room TV",
+      "subtitle": "[Media Player] Playing",
+      "glyph": "music-note"
+    },
+    {
+      "title": "Living Room Thermostat",
+      "subtitle": "[Climate] Heat",
+      "glyph": "thermostat"
+    }
+  ],
+  "query_suggestion": "",
+  "show_caret": false
+}

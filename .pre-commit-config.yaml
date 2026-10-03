@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+        # The Material Design icon font and its metadata are ~1.2 MB each.
+        args: [--maxkb=1500]
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-json
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+  - repo: https://github.com/Garulf/readwright
+    rev: v0.5.0
+    hooks:
+      - id: readwright-check
+        files: ^(README\.md|docs/README\.md\.j2|readme\.yaml|CHANGELOG\.md|\.github/assets/.*)$

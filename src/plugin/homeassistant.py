@@ -1,8 +1,8 @@
-import os
 import json
 from functools import partial, wraps
 import webbrowser
 import logging
+import pathlib
 import urllib3
 from urllib3.exceptions import InsecureRequestWarning
 
@@ -15,11 +15,12 @@ log = logging.getLogger(__name__)
 # This warning prints to stdout and is not catchable so we need to disable it
 urllib3.disable_warnings(InsecureRequestWarning)
 
-COLORS_FILE = "./plugin/colors.json"
-META_FILE = "./meta.json"
-with open(META_FILE, "r") as f:
-    ICONS = json.load(f)
-with open(COLORS_FILE, "r") as _f:
+ASSETS_DIR = pathlib.Path(__file__).resolve().parent / "assets"
+COLORS_FILE = ASSETS_DIR / "colors.json"
+META_FILE = ASSETS_DIR / "meta.json"
+with open(META_FILE, "r", encoding="utf-8") as f:
+    ICONS = {_icon["name"]: _icon["codepoint"] for _icon in json.load(f)}
+with open(COLORS_FILE, "r", encoding="utf-8") as _f:
     COLORS = json.load(_f)
 
 
@@ -61,15 +62,7 @@ class Base(object):
             "Authorization": f"Bearer {token}",
             "content-type": "application/json",
         }
-        self._cacert = os.path.join(
-            os.path.abspath(os.path.dirname(os.path.dirname(__file__))),
-            "lib",
-            "certifi",
-            "cacert.pem",
-        )
         self._verify_ssl = verify_ssl
-        if self._verify_ssl:
-            self._verify_ssl = self._cacert
         self._session = requests.Session()
 
     def request(self, method, endpoint, data=None):
@@ -102,9 +95,9 @@ class Base(object):
         return None
 
     def lookup_icon(self, name):
-        for _icon in ICONS:
-            if name == _icon["name"]:
-                return chr(int(_icon["codepoint"], 16))
+        codepoint = ICONS.get(name)
+        if codepoint:
+            return chr(int(codepoint, 16))
         return None
 
 
@@ -195,11 +188,8 @@ class BaseEntity(object):
     def _icon(self):
         icon = self._client.grab_icon(self.domain, self.state)
         if not icon and self.attributes.get("icon"):
-            with open(META_FILE, "r") as f:
-                for _icon in json.load(f):
-                    if self.attributes["icon"] == _icon["name"]:
-                        icon = chr(int(self.attributes["icon"], 16))
-                        break
+            icon = self._client.lookup_icon(
+                self.attributes["icon"].replace("mdi:", "", 1))
         return icon
 
     def _update(self):

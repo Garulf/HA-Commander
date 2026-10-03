@@ -1,0 +1,115 @@
+{% extends "base.md.j2" %}
+
+{% block badges_extra %} [![Downloads](https://img.shields.io/github/downloads/{{ project.owner }}/{{ project.repo }}/total)]({{ project.url }}/releases/latest){% endblock %}
+
+{% block usage %}
+## Features
+
+* **Search everything.** Find any entity by name or `entity_id`.
+* **One key to act.** `Enter` toggles lights and switches, runs scripts and scenes, presses buttons and cycles thermostat modes.
+* **Rich context menu.** Services, light colors and effects, media sources and every attribute, one `Shift+Enter` away.
+* **Brightness from the search bar.** `ha kitchen 40` sets the kitchen lights to 40%.
+* **Browse by domain.** `ha #` lists your domains, `ha light.` lists your lights.
+* **Logbook and error log.** `ha @` shows what just changed, `ha !` shows what went wrong.
+* **Theme-aware icons.** Material Design icons that follow your Flow Launcher theme.
+
+## Usage
+
+Type `ha` followed by an entity name or `entity_id`, then press `Enter` to run its default action:
+
+```
+ha living
+```
+
+{{ screenshot("search", alt="HA-Commander search results in Flow Launcher") }}
+
+| Query | Result |
+| --- | --- |
+| `ha <name>` | Entities whose name or `entity_id` matches |
+| `ha <domain>.` | Only entities in that domain, e.g. `ha light.` |
+| `ha #` | Every domain. Select one to browse its entities |
+| `ha <light> <0-100>` | Set a light's brightness |
+| `ha @` | Recently changed entities from the logbook |
+| `ha !` | The Home Assistant error log, newest first |
+
+### Browse by domain
+
+Type `#` to list your domains. Selecting one fills in the domain filter:
+
+{{ screenshot("domains", alt="Domains listed in Flow Launcher") }}
+
+{{ screenshot("lights", alt="Light entities in Flow Launcher") }}
+
+### Set light brightness
+
+Add a number between 0 and 100 after a light:
+
+{{ screenshot("brightness", alt="Setting a light's brightness from Flow Launcher") }}
+
+### Logbook
+
+`ha @` lists recently changed entities, newest first. Select one to jump to it:
+
+{{ screenshot("logbook", alt="Home Assistant logbook in Flow Launcher") }}
+
+### Context menu
+
+Open the context menu (`Shift+Enter` or right-click) for the entity's services, light colors
+and effects, media player sources and select options, and its attributes. Select an attribute
+to copy it:
+
+{{ screenshot("context", alt="Context menu with light services and effects") }}
+
+### Hide entities
+
+Choose **Hide Entity** at the bottom of the context menu to remove noisy entities from the results:
+
+{{ screenshot("hide", alt="Hide Entity in the context menu") }}
+
+## Installation
+
+### Flow Launcher
+
+In Flow Launcher, type:
+
+```
+pm install ha-commander
+```
+
+{{ screenshot("install", alt="Flow Launcher plugin manager installing HA-Commander") }}
+
+### Manual installation
+
+Download `HA-Commander-<version>.zip` from the [latest release]({{ project.url }}/releases/latest) and unzip it into
+`%appdata%\FlowLauncher\Plugins`, then restart Flow Launcher.
+
+Pre-releases of the next version are published from the open release PR on the
+[releases page]({{ project.url }}/releases) for testing. Flow Launcher won't offer them as updates.
+
+## Configuration
+
+Open **Settings → Plugins → HA-Commander** in Flow Launcher:
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| URL | `http://localhost:8123` | Your Home Assistant URL, including the port |
+| Token | | A long-lived access token. Create one under {{ my_ha_link("profile_security", "Profile → Security") }} in Home Assistant |
+| Verify SSL | `true` | Reject invalid or self-signed certificates |
+| Max results | `50` | The most results to show. Lower is faster |
+
+## Requirements
+
+* Flow Launcher 1.17.0 or newer
+* Python 3.8 or newer, which Flow Launcher can install for you
+
+## Changelog
+
+{{ changelog(3) }}
+
+See [CHANGELOG.md](CHANGELOG.md) for the full history.
+{% endblock %}
+
+{% block screenshots %}{% endblock %}
+{% block install %}{% endblock %}
+{% block contributing %}{% endblock %}
+{% block license %}{% endblock %}

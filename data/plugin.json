@@ -2,11 +2,11 @@
   "ID": "B2D2C23B055D411GH66FF0C79D6C2A6H",
   "ActionKeyword": "ha",
   "Name": "HA-Commander",
-  "Description": "Search, and interact with Home Assistant using Wox or Flow Launcher.",
+  "Description": "Search, and interact with Home Assistant using Flow Launcher.",
   "Author": "Garulf",
   "Version": "5.2.1",
-  "Language": "python",
+  "Language": "python_v2",
   "Website": "https://github.com/Garulf/HA-Commander",
-  "IcoPath": "icons\\home-assistant.png",
-  "ExecuteFileName": "main.py"
+  "IcoPath": "icon.png",
+  "ExecuteFileName": "run.py"
 }

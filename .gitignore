@@ -142,3 +142,7 @@ cython_debug/
 # Flox directory
 flox/
 Flox-*.dist-info/
+# OS/NAS cruft
+Thumbs.db
+@eaDir/
+dist/

@@ -1,0 +1,16 @@
+{
+  "keyword": "ha",
+  "query": "kitchen 40",
+  "icon": "../../data/icon.png",
+  "max_results": 1,
+  "selection": 0,
+  "results": [
+    {
+      "title": "Kitchen Lights",
+      "subtitle": "[Light] Off - Press Enter To Change Brightness To: 40%",
+      "glyph": "lightbulb"
+    }
+  ],
+  "query_suggestion": "",
+  "show_caret": false
+}
