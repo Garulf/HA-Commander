@@ -12,7 +12,7 @@ Search and control your Home Assistant entities from Flow Launcher.
 ## Features
 
 * **Search everything.** Find any entity by name or `entity_id`.
-* **One key to act.** `Enter` toggles lights and switches, runs scripts and scenes, presses buttons and cycles thermostat modes.
+* **Smart default actions.** `Enter` toggles lights and switches, runs scripts and scenes, presses buttons and cycles thermostat modes.
 * **Rich context menu.** Services, light colors and effects, media sources and every attribute, one `Shift+Enter` away.
 * **Brightness from the search bar.** `ha kitchen 40` sets the kitchen lights to 40%.
 * **Browse by domain.** `ha #` lists your domains, `ha light.` lists your lights.
