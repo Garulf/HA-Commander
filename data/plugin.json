@@ -4,7 +4,7 @@
   "Name": "HA-Commander",
   "Description": "Search, and interact with Home Assistant using Flow Launcher.",
   "Author": "Garulf",
-  "Version": "5.2.1",
+  "Version": "6.0.0",
   "Language": "python_v2",
   "Website": "https://github.com/Garulf/HA-Commander",
   "IcoPath": "icon.png",

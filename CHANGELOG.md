@@ -2,6 +2,31 @@
 
 All notable changes to this project are documented here. Entries before 6.0.0 are taken from the [GitHub releases](https://github.com/Garulf/HA-Commander/releases).
 
+## [6.0.0](https://github.com/Garulf/HA-Commander/compare/v5.2.1...v6.0.0) (2026-10-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* port the plugin to pyflowlauncher on Flow Launcher's python_v2 runtime
+
+### Features
+
+* port the plugin to pyflowlauncher on Flow Launcher's python_v2 runtime ([d430dcc](https://github.com/Garulf/HA-Commander/commit/d430dcc3284651b427020c5227ff35917c9a1a7a))
+* update icons to MDI 7.4.47 and Home Assistant's entity icons ([d430dcc](https://github.com/Garulf/HA-Commander/commit/d430dcc3284651b427020c5227ff35917c9a1a7a))
+
+
+### Bug Fixes
+
+* honour the Max results setting again ([d430dcc](https://github.com/Garulf/HA-Commander/commit/d430dcc3284651b427020c5227ff35917c9a1a7a))
+* resolve custom mdi: entity icons ([d430dcc](https://github.com/Garulf/HA-Commander/commit/d430dcc3284651b427020c5227ff35917c9a1a7a))
+* save hidden entities to the plugin settings ([d430dcc](https://github.com/Garulf/HA-Commander/commit/d430dcc3284651b427020c5227ff35917c9a1a7a))
+
+
+### Performance Improvements
+
+* reply to Flow Launcher before Home Assistant responds ([0b5504f](https://github.com/Garulf/HA-Commander/commit/0b5504fdfc08b2a134eda5f0d16828d2a1ea1b63))
+* reply to Flow Launcher before Home Assistant responds ([7513391](https://github.com/Garulf/HA-Commander/commit/75133914a82766256e0ac38af8b8f0debebf8eed))
+
 ## [5.2.1](https://github.com/Garulf/HA-Commander/releases/tag/v5.2.1) - 2025-01-09
 
 - fix: mediaplayer attribute error by @Gh0stExp10it in https://github.com/Garulf/HA-Commander/pull/68
