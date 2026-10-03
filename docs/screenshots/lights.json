@@ -1,0 +1,26 @@
+{
+  "keyword": "ha",
+  "query": "light.",
+  "icon": "../../data/icon.png",
+  "max_results": 3,
+  "selection": 0,
+  "results": [
+    {
+      "title": "Living Room Lights",
+      "subtitle": "[Light] On",
+      "glyph": "lightbulb"
+    },
+    {
+      "title": "Kitchen Lights",
+      "subtitle": "[Light] Off",
+      "glyph": "lightbulb-off"
+    },
+    {
+      "title": "Office Desk Lamp",
+      "subtitle": "[Light] On",
+      "glyph": "lightbulb"
+    }
+  ],
+  "query_suggestion": "",
+  "show_caret": false
+}

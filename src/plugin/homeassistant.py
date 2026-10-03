@@ -1,25 +1,23 @@
-import os
 import json
 from functools import partial, wraps
 import webbrowser
 import logging
+import pathlib
 import urllib3
 from urllib3.exceptions import InsecureRequestWarning
 
 import requests
 from requests.exceptions import ConnectionError, HTTPError
 
-from icons import DEFAULT_ICONS
+import icons
 
 log = logging.getLogger(__name__)
 # This warning prints to stdout and is not catchable so we need to disable it
 urllib3.disable_warnings(InsecureRequestWarning)
 
-COLORS_FILE = "./plugin/colors.json"
-META_FILE = "./meta.json"
-with open(META_FILE, "r") as f:
-    ICONS = json.load(f)
-with open(COLORS_FILE, "r") as _f:
+ASSETS_DIR = pathlib.Path(__file__).resolve().parent / "assets"
+COLORS_FILE = ASSETS_DIR / "colors.json"
+with open(COLORS_FILE, "r", encoding="utf-8") as _f:
     COLORS = json.load(_f)
 
 
@@ -61,15 +59,7 @@ class Base(object):
             "Authorization": f"Bearer {token}",
             "content-type": "application/json",
         }
-        self._cacert = os.path.join(
-            os.path.abspath(os.path.dirname(os.path.dirname(__file__))),
-            "lib",
-            "certifi",
-            "cacert.pem",
-        )
         self._verify_ssl = verify_ssl
-        if self._verify_ssl:
-            self._verify_ssl = self._cacert
         self._session = requests.Session()
 
     def request(self, method, endpoint, data=None):
@@ -86,26 +76,6 @@ class Base(object):
         )
         response.raise_for_status()
         return response
-
-    def grab_icon(self, domain, state="on"):
-        if state == "unavailable":
-            icon = DEFAULT_ICONS["unavailable"]
-        elif domain is None:
-            icon = DEFAULT_ICONS["broken_image"]
-        if not domain in DEFAULT_ICONS.keys():
-            return self.lookup_icon(domain)
-        else:
-            icon_name = f"{domain}_{state}".lower()
-            icon = DEFAULT_ICONS.get(icon_name) or DEFAULT_ICONS.get(domain)
-        if icon:
-            return chr(int(icon, 16))
-        return None
-
-    def lookup_icon(self, name):
-        for _icon in ICONS:
-            if name == _icon["name"]:
-                return chr(int(_icon["codepoint"], 16))
-        return None
 
 
 class Client(Base):
@@ -193,14 +163,8 @@ class BaseEntity(object):
         return self._entity
 
     def _icon(self):
-        icon = self._client.grab_icon(self.domain, self.state)
-        if not icon and self.attributes.get("icon"):
-            with open(META_FILE, "r") as f:
-                for _icon in json.load(f):
-                    if self.attributes["icon"] == _icon["name"]:
-                        icon = chr(int(self.attributes["icon"], 16))
-                        break
-        return icon
+        return icons.icon(self.attributes.get("icon")) or icons.entity_icon(
+            self.domain, self.state, self.attributes.get("device_class"))
 
     def _update(self):
         self.__init__(self._client, self._client.entity_state(self.entity_id))
@@ -224,7 +188,7 @@ class Entity(BaseEntity):
         """Toggle entity."""
         self._client.call_services(domain, "toggle", data=self.target)
 
-    @service(icon="switch", score=100)
+    @service(icon="toggle-switch", score=100)
     def turn_on(self, **service_data) -> any:
         """Turn entity on."""
         for arg in service_data:
@@ -233,7 +197,7 @@ class Entity(BaseEntity):
         self._client.call_services(
             "homeassistant", "turn_on", data=service_data)
 
-    @service(icon="switch_off", score=100)
+    @service(icon="toggle-switch-off", score=100)
     def turn_off(self, **service_data) -> None:
         """Turn entity off."""
         for arg in service_data:
@@ -297,7 +261,7 @@ class Lock(BaseEntity):
         """Lock the entity."""
         self._client.call_services("lock", "lock", data=self.target)
 
-    @service(icon="lock-open")
+    @service(icon="lock-open-variant")
     def unlock(self, **service_data) -> None:
         self._client.call_services("lock", "unlock", data=self.target)
 
@@ -363,6 +327,7 @@ class Climate(Entity):
     def _default_action(self):
         self.cycle_mode()
 
+    @service(icon="hvac")
     def cycle_mode(self) -> None:
         """Cycle HVAC mode."""
         self._update()
@@ -415,7 +380,7 @@ class Camera(BaseEntity):
     def _default_action(self):
         self.view()
 
-    @service(icon="camera-image")
+    @service(icon="camera")
     def snapshot(self) -> None:
         """Take snapshot."""
         self._client.call_services("camera", "snapshot", data=self.target)
@@ -499,7 +464,7 @@ class Button(BaseEntity):
     def _default_action(self):
         self.press()
 
-    @service(icon="gesture-tap")
+    @service(icon="gesture-tap-button")
     def press(self) -> None:
         """Press button"""
         self._client.call_services("button", "press", data=self.target)

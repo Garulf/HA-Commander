@@ -1,0 +1,36 @@
+{
+  "keyword": "ha",
+  "query": "#",
+  "icon": "../../data/icon.png",
+  "max_results": 5,
+  "selection": 2,
+  "results": [
+    {
+      "title": "climate",
+      "subtitle": "Search for entities in this domain",
+      "glyph": "thermostat"
+    },
+    {
+      "title": "cover",
+      "subtitle": "Search for entities in this domain",
+      "glyph": "window-open"
+    },
+    {
+      "title": "light",
+      "subtitle": "Search for entities in this domain",
+      "glyph": "lightbulb"
+    },
+    {
+      "title": "lock",
+      "subtitle": "Search for entities in this domain",
+      "glyph": "lock"
+    },
+    {
+      "title": "media_player",
+      "subtitle": "Search for entities in this domain",
+      "glyph": "cast"
+    }
+  ],
+  "query_suggestion": "",
+  "show_caret": false
+}
