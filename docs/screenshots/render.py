@@ -22,8 +22,7 @@ SHOTS_DIR = ROOT / "docs" / "screenshots"
 ASSETS_DIR = ROOT / ".github" / "assets"
 PLUGIN_ASSETS = ROOT / "src" / "plugin" / "assets"
 THEMES = {"dark": "#FFFFFF", "light": "#1B1B1B"}
-HERO = {"shot": "search", "theme": "light", "css": "hero-win11-accent.css"}
-HERO_WIDTH = 1600
+HERO = {"shot": "hero", "theme": "dark", "css": ["win11-dark.css", "docs/screenshots/hero.css"]}
 
 CODEPOINTS = json.loads((PLUGIN_ASSETS / "icons.json").read_text(encoding="utf-8"))["icons"]
 FONT = ImageFont.truetype(str(PLUGIN_ASSETS / "materialdesignicons-webfont.ttf"), 112)
@@ -40,7 +39,7 @@ def glyph_png(name: str, color: str, out_dir: Path) -> Path:
 
 def flow_render(args, out_path: Path) -> None:
     with tempfile.TemporaryDirectory() as out_dir:
-        subprocess.run(["flow-render", *args, "-o", out_dir], check=True)
+        subprocess.run(["flow-render", *args, "-o", out_dir], check=True, cwd=ROOT)
         (rendered,) = Path(out_dir).glob("*.png")
         shutil.move(str(rendered), out_path)
     print(f"Wrote {out_path}")
@@ -58,17 +57,13 @@ def render_config(shot: str, theme: str, css: str, out_path: Path, work: Path) -
 
 
 def main() -> None:
-    shots = sorted(path.stem for path in SHOTS_DIR.glob("*.json"))
+    shots = sorted(path.stem for path in SHOTS_DIR.glob("*.json") if path.stem != HERO["shot"])
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
         for shot in shots:
             for theme in THEMES:
                 render_config(shot, theme, f"win11-{theme}.css", ASSETS_DIR / f"{shot}-{theme}.png", work)
-        hero = ASSETS_DIR / "hero.png"
-        render_config(HERO["shot"], HERO["theme"], HERO["css"], hero, work)
-        with Image.open(hero) as image:
-            image = image.resize((HERO_WIDTH, round(image.height * HERO_WIDTH / image.width)), Image.LANCZOS)
-        image.save(hero, optimize=True)
+        render_config(HERO["shot"], HERO["theme"], HERO["css"], ASSETS_DIR / "hero.png", work)
 
         package = subprocess.run([str(ROOT / "scripts" / "package.sh"), str(work / "dist")], check=True, capture_output=True, text=True)
         plugin_zip = package.stdout.strip().splitlines()[-1]
