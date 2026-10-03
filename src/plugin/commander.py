@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import string
 from functools import lru_cache, partial
-from typing import Iterable, List
+from typing import Iterable, List, Set
 
 from pyflowlauncher import Plugin, api
 from requests.exceptions import HTTPError, RequestException
@@ -17,6 +17,7 @@ DEFAULT_URL = "http://localhost:8123"
 DEFAULT_MAX_RESULTS = 50
 
 plugin = Plugin(launcher=HassLauncher())
+pending_service_calls: Set[asyncio.Task] = set()
 
 
 def match(query, entity, friendly_name):
@@ -221,10 +222,17 @@ def context_menu(data):
 
 @plugin.on_method
 async def action(entity, query="", service="_default_action"):
+    """Reply straight away so Flow Launcher hides while Home Assistant handles the call."""
+    task = asyncio.create_task(send_service_call(entity, query, service))
+    pending_service_calls.add(task)
+    task.add_done_callback(pending_service_calls.discard)
+
+
+async def send_service_call(entity: dict, query: str, service: str) -> None:
     try:
         await run_blocking(call_service, hass(), entity, query, service)
     except RequestException as error:
-        return api.show_msg("Home Assistant error", str(error), ICON)
+        await plugin.launcher.api.invoke(api.show_msg("Home Assistant error", str(error), ICON))
 
 
 def call_service(client: Client, data: dict, query: str, service: str) -> None:

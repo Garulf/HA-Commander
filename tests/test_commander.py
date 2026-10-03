@@ -1,9 +1,11 @@
 import asyncio
+import threading
 
 import requests
 
 import commander
 import icons
+from conftest import STATES
 from launcher import KEEP_OPEN
 
 
@@ -135,3 +137,44 @@ def test_hass_client_is_reused_until_settings_change(settings):
     settings["url"] = "http://other:8123/"
     assert commander.hass() is not first
     assert commander.hass()._url == "http://other:8123"
+
+
+def test_action_replies_before_home_assistant_responds(client, monkeypatch):
+    release = threading.Event()
+    calls = []
+
+    def slow_call_service(*args):
+        release.wait(5)
+        calls.append(args)
+
+    monkeypatch.setattr(commander, "call_service", slow_call_service)
+
+    async def run():
+        assert await asyncio.wait_for(commander.action(STATES[0], "", "toggle"), 1) is None
+        assert calls == []
+        release.set()
+        await asyncio.gather(*commander.pending_service_calls)
+
+    asyncio.run(run())
+    assert calls == [(client, STATES[0], "", "toggle")]
+
+
+def test_action_reports_home_assistant_errors(client, monkeypatch):
+    sent = []
+
+    async def invoke(command):
+        sent.append(command)
+
+    def failing_call_service(*args):
+        raise requests.ConnectionError("offline")
+
+    monkeypatch.setattr(commander.plugin.launcher.api, "invoke", invoke)
+    monkeypatch.setattr(commander, "call_service", failing_call_service)
+
+    async def run():
+        await commander.action(STATES[0])
+        await asyncio.gather(*commander.pending_service_calls)
+
+    asyncio.run(run())
+    assert [command["Method"] for command in sent] == ["Flow.Launcher.ShowMsg"]
+    assert sent[0]["Parameters"][:2] == ["Home Assistant error", "offline"]
