@@ -1,8 +1,11 @@
 """Render the README screenshots and hero image with flow-render.
 
-Usage (from the repo root, with flow-render and Pillow installed):
+Usage (from the repo root; flow-render is pinned in requirements.txt next to
+this script and needs Python 3.10+):
 
-    python docs/screenshots/render.py
+    uv run --no-project --python 3.12 \
+        --with-requirements docs/screenshots/requirements.txt \
+        python docs/screenshots/render.py
 
 Each ``<shot>.json`` is a flow-render config whose results name a Material
 Design icon in ``glyph`` instead of an image ``icon``. Flow Launcher draws those
