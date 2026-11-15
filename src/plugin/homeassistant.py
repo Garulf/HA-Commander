@@ -432,7 +432,7 @@ class Select(BaseEntity):
         """Select option."""
         data = self.target
         data["option"] = option
-        self._client.call_services("input_select", "select_option", data=data)
+        self._client.call_services("select", "select_option", data=data)
 
 
 class Group(Entity):
