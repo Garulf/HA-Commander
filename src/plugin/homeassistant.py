@@ -282,13 +282,14 @@ class MediaPlayer(Entity):
 
     def __init__(self, client: Client, entity: dict) -> None:
         super().__init__(client, entity)
-        for source in self.attributes.get("source_list", []):
+        source_list = self.attributes.get("source_list") or []
+        for source in source_list:
             setattr(self, source, partial(self._select_source, source))
             getattr(self, source).name = source
             getattr(self, source).__doc__ = 'Set Source to "{}"'.format(source)
             getattr(self, source).icon = "radiobox-blank"
         current_source = self.attributes.get("source")
-        if current_source and current_source in self.attributes.get("source_list", []):
+        if current_source and current_source in source_list:
             getattr(self, current_source).icon = "radiobox-marked"
             getattr(self, current_source).__doc__ = "Currently selected Source."
 
