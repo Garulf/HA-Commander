@@ -439,11 +439,14 @@ class Group(Entity):
     def __init__(self, client: Client, entity: dict) -> None:
         super().__init__(client, entity)
         for entity in self.attributes.get("entity_id", []):
-            setattr(self, entity, partial(self.toggle, entity))
+            setattr(self, entity, partial(self._toggle_member, entity))
             getattr(self, entity).name = entity
             getattr(self, entity).__doc__ = 'Toggle entity "{}"'.format(entity)
             getattr(self, entity).icon = "checkbox-multiple-blank"
             getattr(self, entity)._service = True
+
+    def _toggle_member(self, entity_id: str) -> None:
+        self._client.call_services("homeassistant", "toggle", data={"entity_id": entity_id})
 
 
 class Scene(Entity):
